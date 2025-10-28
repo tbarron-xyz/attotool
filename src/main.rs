@@ -15,10 +15,6 @@ struct Args {
     base_url: String,
     #[arg(long)]
     input: Option<String>,
-    #[arg(long, default_value = "You are intelligent, confident, and brave.")]
-    prefix: String,
-    #[arg(long)]
-    parse_tools: bool,
     #[arg(long)]
     r#loop: bool,
     #[arg(long, default_value_t = 3)]
