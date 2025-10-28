@@ -5,7 +5,7 @@ mod attotool;
 mod tools;
 
 #[derive(Parser)]
-#[command(name = "attotool-rs")]
+#[command(name = "attotool")]
 struct Args {
     // Known decent models: openai/gpt-oss-20b, qwen/qwen-2.5-7b-instruct, mistralai/mistral-7b-instruct, z-ai/glm-4-32b
     #[arg(long, default_value = "openai/gpt-oss-20b")]

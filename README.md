@@ -1,4 +1,4 @@
-# attotool-rs
+# attotool
 
 A tiny YAML-tool-calling agent built from scratch in Rust.
 
@@ -44,7 +44,7 @@ cargo run -- --model "openai/gpt-4" --max-tokens 4000 --input "your task here"
 
 ## Recommended Models
 
-The following models have been tested and have worked at least once with attotool-rs:
+The following models have been tested and have worked at least once with attotool:
 
 - **z-ai/glm-4-32b**
 - mistralai/mistral-7b-instruct

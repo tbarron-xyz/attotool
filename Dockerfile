@@ -12,4 +12,4 @@ RUN cargo build
 EXPOSE 7999
 
 # Set the entrypoint to the built binary
-ENTRYPOINT ["./target/debug/attotool-rs"]
+ENTRYPOINT ["./target/debug/attotool"]
