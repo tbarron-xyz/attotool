@@ -13,6 +13,35 @@ use serde_json::Value;
 use serde_yaml::{Mapping, Value as YamlValue};
 use std::env;
 
+fn parse_and_normalize_yaml(
+    input: &str,
+    silent: bool,
+) -> Result<String, Box<dyn std::error::Error>> {
+    if let Ok(value) = serde_yaml::from_str::<YamlValue>(input) {
+        if let YamlValue::Mapping(mapping) = value {
+            if mapping.len() > 1 {
+                if !silent {
+                    println!(
+                        "Removed {} additional tool(s) from multi-tool response",
+                        mapping.len() - 1
+                    );
+                }
+                let mut new_mapping = Mapping::new();
+                if let Some((key, val)) = mapping.iter().next() {
+                    new_mapping.insert(key.clone(), val.clone());
+                }
+                let new_yaml =
+                    serde_yaml::to_string(&YamlValue::Mapping(new_mapping))
+                        .unwrap();
+                return Ok(new_yaml.trim().to_string());
+            } else {
+                return Ok(input.to_string());
+            }
+        }
+    }
+    Err("Invalid YAML".into())
+}
+
 pub async fn choose_tool(
     history: Vec<ChatCompletionRequestMessage>,
     model: &str,
@@ -87,28 +116,8 @@ read_file:
         }
         if !trimmed.is_empty() {
             // First, try parsing the entire trimmed response as YAML
-            if let Ok(value) = serde_yaml::from_str::<YamlValue>(trimmed) {
-                if let YamlValue::Mapping(mapping) = value {
-                    if mapping.len() > 1 {
-                        if !silent {
-                            println!(
-                                "Removed {} additional tool(s) from multi-tool response",
-                                mapping.len() - 1
-                            );
-                        }
-                        let mut new_mapping = Mapping::new();
-                        if let Some((key, val)) = mapping.iter().next() {
-                            new_mapping.insert(key.clone(), val.clone());
-                        }
-                        let new_yaml = serde_yaml::to_string(
-                            &YamlValue::Mapping(new_mapping),
-                        )
-                        .unwrap();
-                        return Ok(new_yaml.trim().to_string());
-                    } else {
-                        return Ok(trimmed.to_string());
-                    }
-                }
+            if let Ok(normalized) = parse_and_normalize_yaml(trimmed, silent) {
+                return Ok(normalized);
             }
             // If parsing the whole failed, try splitting by \n\n and parse the first part
             let yaml_candidate = if let Some(pos) = trimmed.find("\n\n") {
@@ -116,29 +125,10 @@ read_file:
             } else {
                 trimmed
             };
-            if let Ok(value) = serde_yaml::from_str::<YamlValue>(yaml_candidate)
+            if let Ok(normalized) =
+                parse_and_normalize_yaml(yaml_candidate, silent)
             {
-                if let YamlValue::Mapping(mapping) = value {
-                    if mapping.len() > 1 {
-                        if !silent {
-                            println!(
-                                "Removed {} additional tool(s) from multi-tool response",
-                                mapping.len() - 1
-                            );
-                        }
-                        let mut new_mapping = Mapping::new();
-                        if let Some((key, val)) = mapping.iter().next() {
-                            new_mapping.insert(key.clone(), val.clone());
-                        }
-                        let new_yaml = serde_yaml::to_string(
-                            &YamlValue::Mapping(new_mapping),
-                        )
-                        .unwrap();
-                        return Ok(new_yaml.trim().to_string());
-                    } else {
-                        return Ok(yaml_candidate.to_string());
-                    }
-                }
+                return Ok(normalized);
             }
             return Ok(trimmed.to_string());
         }
