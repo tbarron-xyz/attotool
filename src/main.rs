@@ -1,4 +1,4 @@
-use attotool::{loop_tools_until_finish, one_function_call};
+use attotool::loop_tools_until_finish;
 use clap::Parser;
 
 mod attotool;
@@ -16,8 +16,12 @@ struct Args {
     base_url: String,
     #[arg(long)]
     input: Option<String>,
-    #[arg(long)]
-    r#loop: bool,
+    #[arg(
+        long,
+        default_value_t = 0,
+        help = "Maximum number of tool calls (0 for infinite)"
+    )]
+    max_tool_calls: u32,
     #[arg(long, default_value_t = 3)]
     retries: u32,
 }
@@ -26,19 +30,14 @@ struct Args {
 async fn main() {
     let args = Args::parse();
     let message = args.input.as_ref().unwrap_or(&"".to_string()).clone();
-    if args.r#loop {
-        loop_tools_until_finish(
-            message,
-            &args.model,
-            args.retries,
-            args.max_tokens,
-        )
-        .await
-        .unwrap();
-    } else {
-        one_function_call(message, &args.model, args.retries, args.max_tokens)
-            .await
-            .unwrap();
-    }
+    loop_tools_until_finish(
+        message,
+        &args.model,
+        args.retries,
+        args.max_tokens,
+        args.max_tool_calls,
+    )
+    .await
+    .unwrap();
     return;
 }

@@ -149,6 +149,7 @@ pub async fn loop_tools_until_finish(
     model: &str,
     retries: u32,
     max_tokens: u32,
+    max_tool_calls: u32,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut history = vec![ChatCompletionRequestMessage::User(
         ChatCompletionRequestUserMessage {
@@ -303,104 +304,13 @@ pub async fn loop_tools_until_finish(
             },
         ));
 
-        if tool == "finish_task" {
+        if tool == "finish_task"
+            || (max_tool_calls != 0
+                && tool_calls.len() >= max_tool_calls as usize)
+        {
             break;
         }
     }
-    for tool in &tool_calls {
-        println!("[{}]", tool);
-    }
-    let yaml_content = serde_yaml::to_string(&history).unwrap();
-    std::fs::write("./history.yaml", yaml_content).unwrap();
-    Ok(())
-}
-
-pub async fn one_function_call(
-    message: String,
-    model: &str,
-    retries: u32,
-    max_tokens: u32,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut history = vec![ChatCompletionRequestMessage::User(
-        ChatCompletionRequestUserMessage {
-            content: ChatCompletionRequestUserMessageContent::Text(message),
-            name: None,
-        },
-    )];
-    let mut tool_calls = Vec::new();
-    let response =
-        choose_tool(history.clone(), model, retries, max_tokens).await?;
-    let (tool, args_parsed) = match serde_yaml::from_str(&response) {
-        Ok(yaml_value) => {
-            if let YamlValue::Mapping(mapping) = yaml_value {
-                if let Some((key, value)) = mapping.into_iter().next() {
-                    if let YamlValue::String(tool_name) = key {
-                        (tool_name, serde_json::to_value(value).unwrap())
-                    } else {
-                        (
-                            "finish_task".to_string(),
-                            serde_json::json!({"message": response}),
-                        )
-                    }
-                } else {
-                    (
-                        "finish_task".to_string(),
-                        serde_json::json!({"message": response}),
-                    )
-                }
-            } else {
-                (
-                    "finish_task".to_string(),
-                    serde_json::json!({"message": response}),
-                )
-            }
-        }
-        Err(_) => (
-            "finish_task".to_string(),
-            serde_json::json!({"message": response}),
-        ),
-    };
-    tool_calls.push(tool.clone());
-    println!(
-        "Tool: {}, Args: {}",
-        tool,
-        serde_yaml::to_string(&args_parsed).unwrap()
-    );
-    history.push(ChatCompletionRequestMessage::Assistant(
-        ChatCompletionRequestAssistantMessage {
-            content: Some(ChatCompletionRequestAssistantMessageContent::Text(
-                response.clone(),
-            )),
-            name: None,
-            tool_calls: None,
-            ..Default::default()
-        },
-    ));
-    let result = execute_tool_call(tool.clone(), args_parsed.clone()).await?;
-    println!("{}", result.chars().take(500).collect::<String>());
-    let args_str = if let serde_json::Value::Object(obj) = &args_parsed {
-        obj.iter()
-            .map(|(k, v)| {
-                if let serde_json::Value::String(s) = v {
-                    format!("{}: '{}'", k, s)
-                } else {
-                    format!("{}: {}", k, v.to_string())
-                }
-            })
-            .collect::<Vec<_>>()
-            .join(" ")
-    } else {
-        "".to_string()
-    };
-    let prefixed_result = format!("[{} {}]\n{}", tool, args_str, result);
-    history.push(ChatCompletionRequestMessage::User(
-        ChatCompletionRequestUserMessage {
-            content: ChatCompletionRequestUserMessageContent::Text(
-                prefixed_result,
-            ),
-            name: None,
-        },
-    ));
     for tool in &tool_calls {
         println!("[{}]", tool);
     }
