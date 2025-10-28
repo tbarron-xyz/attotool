@@ -8,7 +8,7 @@ mod tools;
 #[command(name = "attotool")]
 struct Args {
     // Known decent models: openai/gpt-oss-20b, qwen/qwen-2.5-7b-instruct, mistralai/mistral-7b-instruct, z-ai/glm-4-32b
-    #[arg(long, default_value = "openai/gpt-oss-20b")]
+    #[arg(long, default_value = "z-ai/glm-4-32b")]
     model: String,
     #[arg(long, default_value_t = 2000)]
     max_tokens: u32,

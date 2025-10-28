@@ -35,7 +35,7 @@ cargo run -- --model "openai/gpt-4" --max-tokens 4000 --input "your task here"
 
 ### CLI Options
 
-- `--model`: LLM model to use (default: openai/gpt-oss-20b)
+- `--model`: LLM model to use (default: z-ai/glm-4-32b)
 - `--max-tokens`: Maximum tokens for response (default: 2000)
 - `--base-url`: API base URL (default: https://openrouter.ai/api/v1, use https://api.openai.com/v1 for OpenAI)
 - `--input`: Task description
