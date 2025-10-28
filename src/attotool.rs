@@ -30,6 +30,8 @@ pub async fn choose_tool(
     let tools = crate::tools::get_tools();
     let available_tools_text =
         tools.iter().map(|t| t.format()).collect::<Vec<_>>().join("\n");
+    let current_dir = std::env::current_dir()
+        .unwrap_or_else(|_| std::path::PathBuf::from("unknown"));
 
     let system_message = ChatCompletionRequestMessage::System(ChatCompletionRequestSystemMessage {
         content: ChatCompletionRequestSystemMessageContent::Text(
@@ -43,6 +45,8 @@ You will be given a user message which defines a task, and your job is to choose
 
 If the task is finished, use the finish_task tool. If you need additional information, use ask_for_clarification
 
+The current working directory is {}
+
 Your available tools:
 
 {}
@@ -50,7 +54,7 @@ Your available tools:
 An example of appropriate response formatting:
 
 read_file:
-  path: '/some/file.txt'", available_tools_text).to_string()),
+  path: '/some/file.txt'", current_dir.display(), available_tools_text).to_string()),
         name: None,
     });
 

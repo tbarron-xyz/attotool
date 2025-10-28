@@ -46,10 +46,13 @@ cargo run -- --model "openai/gpt-4" --max-tokens 4000 --input "your task here"
 
 The following models have been tested and have worked at least once with attotool-rs:
 
-- **mistralai/mistral-7b-instruct**
+- **z-ai/glm-4-32b**
+- mistralai/mistral-7b-instruct
 - openai/gpt-oss-20b
 - qwen/qwen-2.5-7b-instruct
-- z-ai/glm-4-32b
+- mistralai/mistral-small-3.1-24b-instruct
+- mistralai/mistral-nemo
+- mistralai/devstral-small-2505
 
 ## Available Tools
 
