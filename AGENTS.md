@@ -1,0 +1,1 @@
+After making any code changes to Rust files, run `cargo fmt`
