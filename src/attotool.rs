@@ -12,9 +12,6 @@ use async_openai::{
 use serde_json::Value;
 use serde_yaml::{Mapping, Value as YamlValue};
 use std::env;
-use std::fs;
-use std::io::{self, Write};
-use std::process;
 
 pub async fn choose_tool(
     history: Vec<ChatCompletionRequestMessage>,
@@ -29,21 +26,9 @@ pub async fn choose_tool(
             .with_api_key(api_key),
     );
 
-    let available_tools_text = format!("\
-execute_shell_command: 'Executes a command with arguments on the zsh shell - includes common tools like ls, pwd, curl, cat, mkdir'
-  command: string
-  args: string
-read_file: 'Reads a file on the local filesystem'
-  path: string
-write_file: 'Writes a file on the local filesystem'
-  path: string
-  content: string
-finish_task: 'Marks the assigned task as completed, with a completion message'
-  message: string
-ask_for_clarification: 'Allows the assistant to ask the user for clarification on a point of interest'
-  question: string
-describe_to_user: 'Provides a description or response to the user'
-  description: string");
+    let tools = crate::tools::get_tools();
+    let available_tools_text =
+        tools.iter().map(|t| t.format()).collect::<Vec<_>>().join("\n");
 
     let system_message = ChatCompletionRequestMessage::System(ChatCompletionRequestSystemMessage {
         content: ChatCompletionRequestSystemMessageContent::Text(
@@ -145,85 +130,16 @@ read_file:
     Err("Failed to get non-empty tool choice after retries".into())
 }
 
-fn prompt_approval(prompt: &str) -> bool {
-    println!("{}", prompt);
-    io::stdout().flush().unwrap();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
-    let input = input.trim().to_lowercase();
-    if input.is_empty() {
-        return true;
-    }
-    input == "y"
-}
-
 pub async fn execute_tool_call(
     tool_name: String,
     args: Value,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    match tool_name.as_str() {
-        "execute_shell_command" => {
-            let command = args["command"].as_str().unwrap_or("");
-            let args_str = args["args"].as_str().unwrap_or("");
-            if !prompt_approval(&format!(
-                "Do you want to run this command: `{} {}` ? (Y/n): ",
-                command, args_str
-            )) {
-                return Ok("Command execution cancelled.".to_string());
-            }
-            let output = process::Command::new("zsh")
-                .arg("-c")
-                .arg(format!("{} {}", command, args_str))
-                .output()
-                .expect("Failed to execute command");
-            let mut result =
-                format!("{}", String::from_utf8_lossy(&output.stdout));
-            if !output.stderr.is_empty() {
-                result.push_str(&format!(
-                    "\nStderr: {}",
-                    String::from_utf8_lossy(&output.stderr)
-                ));
-            }
-            Ok(result)
-        }
-        "read_file" => {
-            let path = args["path"].as_str().unwrap_or("");
-            match fs::read_to_string(path) {
-                Ok(content) => Ok(content),
-                Err(e) => Ok(format!("Error reading file: {}", e)),
-            }
-        }
-        "write_file" => {
-            let path = args["path"].as_str().unwrap_or("");
-            let content = args["content"].as_str().unwrap_or("");
-            if !prompt_approval(&format!(
-                "Do you want to write to file: {}? (Y/n): ",
-                path
-            )) {
-                return Ok("File write cancelled.".to_string());
-            }
-            match fs::write(path, content) {
-                Ok(_) => Ok("File written successfully".to_string()),
-                Err(e) => Ok(format!("Error writing file: {}", e)),
-            }
-        }
-        "finish_task" => {
-            let message = args["message"].as_str().unwrap_or("");
-            Ok(format!("Task completed: {}", message))
-        }
-        "describe_to_user" => {
-            let description = args["description"].as_str().unwrap_or("");
-            Ok(format!("Description: {}", description))
-        }
-        "ask_for_clarification" => {
-            let question = args["question"].as_str().unwrap_or("");
-            println!("{}", question);
-            let mut answer = String::new();
-            io::stdin().read_line(&mut answer).unwrap();
-            Ok(answer.trim().to_string())
-        }
-        _ => Ok(format!("Unknown tool: {}", tool_name)),
-    }
+    let tools = crate::tools::get_tools();
+    let tool = tools
+        .into_iter()
+        .find(|t| t.name() == tool_name)
+        .ok_or_else(|| format!("Unknown tool: {}", tool_name))?;
+    tool.execute(args).await
 }
 
 pub async fn loop_tools_until_finish(

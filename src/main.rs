@@ -2,6 +2,7 @@ use attotool::{loop_tools_until_finish, one_function_call};
 use clap::Parser;
 
 mod attotool;
+mod tools;
 
 #[derive(Parser)]
 #[command(name = "attotool-rs")]
