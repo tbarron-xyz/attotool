@@ -25,7 +25,7 @@ struct Args {
     #[arg(long, default_value_t = 3)]
     retries: u32,
     #[arg(long)]
-    silent: bool,
+    verbose: bool,
     #[arg(long)]
     tool_call_details: bool,
 }
@@ -41,7 +41,7 @@ async fn main() {
         args.max_tokens,
         args.max_tool_calls,
         &args.base_url,
-        args.silent,
+        args.verbose,
         args.tool_call_details,
     )
     .await

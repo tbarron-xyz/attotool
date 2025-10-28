@@ -15,12 +15,12 @@ use std::env;
 
 fn parse_and_normalize_yaml(
     input: &str,
-    silent: bool,
+    verbose: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     if let Ok(value) = serde_yaml::from_str::<YamlValue>(input) {
         if let YamlValue::Mapping(mapping) = value {
             if mapping.len() > 1 {
-                if !silent {
+                if verbose {
                     println!(
                         "Removed {} additional tool(s) from multi-tool response",
                         mapping.len() - 1
@@ -48,7 +48,7 @@ pub async fn choose_tool(
     retries: u32,
     max_tokens: u32,
     base_url: &str,
-    silent: bool,
+    verbose: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let api_key =
         env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
@@ -100,14 +100,14 @@ read_file:
     };
 
     for attempt in 0..retries {
-        if !silent {
+        if verbose {
             println!("Sending openai request");
         }
         let response = client.chat().create(request.clone()).await?;
         let choice = response.choices.first().ok_or("No response")?;
         let content = choice.message.content.as_ref().ok_or("No content")?;
         let trimmed = content.trim();
-        if !silent {
+        if verbose {
             println!(
                 "API Response Content (choose_tool, attempt {}):\n{}",
                 attempt + 1,
@@ -116,7 +116,7 @@ read_file:
         }
         if !trimmed.is_empty() {
             // First, try parsing the entire trimmed response as YAML
-            if let Ok(normalized) = parse_and_normalize_yaml(trimmed, silent) {
+            if let Ok(normalized) = parse_and_normalize_yaml(trimmed, verbose) {
                 return Ok(normalized);
             }
             // If parsing the whole failed, try splitting by \n\n and parse the first part
@@ -126,7 +126,7 @@ read_file:
                 trimmed
             };
             if let Ok(normalized) =
-                parse_and_normalize_yaml(yaml_candidate, silent)
+                parse_and_normalize_yaml(yaml_candidate, verbose)
             {
                 return Ok(normalized);
             }
@@ -139,14 +139,14 @@ read_file:
 pub async fn execute_tool_call(
     tool_name: String,
     args: Value,
-    silent: bool,
+    verbose: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let tools = crate::tools::get_tools();
     let tool = tools
         .into_iter()
         .find(|t| t.name() == tool_name)
         .ok_or_else(|| format!("Unknown tool: {}", tool_name))?;
-    tool.execute(args, silent).await
+    tool.execute(args, verbose).await
 }
 
 pub async fn loop_tools_until_finish(
@@ -156,7 +156,7 @@ pub async fn loop_tools_until_finish(
     max_tokens: u32,
     max_tool_calls: u32,
     base_url: &str,
-    silent: bool,
+    verbose: bool,
     tool_call_details: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut history = vec![ChatCompletionRequestMessage::User(
@@ -173,7 +173,7 @@ pub async fn loop_tools_until_finish(
             retries,
             max_tokens,
             base_url,
-            silent,
+            verbose,
         )
         .await?;
         let yaml_value: YamlValue = match serde_yaml::from_str(&response) {
@@ -182,7 +182,7 @@ pub async fn loop_tools_until_finish(
                 let tool = "finish_task".to_string();
                 tool_calls.push(tool.clone());
                 let args_parsed = serde_json::json!({"message": response});
-                if !silent {
+                if verbose {
                     println!(
                         "Tool: {}, Args: {}",
                         tool,
@@ -207,7 +207,7 @@ pub async fn loop_tools_until_finish(
                 let result = execute_tool_call(
                     tool.clone(),
                     args_parsed.clone(),
-                    silent,
+                    verbose,
                 )
                 .await?;
                 let args_str =
@@ -272,7 +272,7 @@ pub async fn loop_tools_until_finish(
                 )
             };
         tool_calls.push(tool.clone());
-        if !silent {
+        if verbose {
             println!(
                 "Tool: {}, Args: {}",
                 tool,
@@ -297,7 +297,7 @@ pub async fn loop_tools_until_finish(
         }
 
         let result =
-            execute_tool_call(tool.clone(), args_parsed.clone(), silent)
+            execute_tool_call(tool.clone(), args_parsed.clone(), verbose)
                 .await?;
 
         let args_str = if let serde_json::Value::Object(obj) = &args_parsed {

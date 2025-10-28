@@ -41,7 +41,7 @@ cargo run -- --model "openai/gpt-4" --max-tokens 4000 --input "your task here"
 - `--input`: Task description
 - `--max-tool-calls`: Maximum number of tool calls (default: 0 for infinite)
 - `--retries`: Number of retries for API calls (default: 3)
-- `--silent`: Suppress most output except for describe_to_user, ask_for_clarification, and finish_task
+- `--verbose`: Enable detailed output including tool calls and API responses
 - `--tool-call-details`: Show detailed tool call results and execution output
 
 ## Recommended Models
