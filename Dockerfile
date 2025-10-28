@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 
 # Build the application in debug mode
-RUN cargo build --debug
+RUN cargo build
 
 # Expose port 7999
 EXPOSE 7999
