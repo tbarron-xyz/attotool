@@ -17,6 +17,7 @@ pub async fn choose_tool(
     history: Vec<ChatCompletionRequestMessage>,
     model: &str,
     retries: u32,
+    max_tokens: u32,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let api_key =
         env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
@@ -59,6 +60,7 @@ read_file:
     let request = CreateChatCompletionRequest {
         model: model.to_string(),
         messages,
+        max_completion_tokens: Some(max_tokens),
         ..Default::default()
     };
 
@@ -146,6 +148,7 @@ pub async fn loop_tools_until_finish(
     message: String,
     model: &str,
     retries: u32,
+    max_tokens: u32,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut history = vec![ChatCompletionRequestMessage::User(
         ChatCompletionRequestUserMessage {
@@ -153,12 +156,15 @@ pub async fn loop_tools_until_finish(
             name: None,
         },
     )];
+    let mut tool_calls = Vec::new();
     loop {
-        let response = choose_tool(history.clone(), model, retries).await?;
+        let response =
+            choose_tool(history.clone(), model, retries, max_tokens).await?;
         let yaml_value: YamlValue = match serde_yaml::from_str(&response) {
             Ok(v) => v,
             Err(_) => {
                 let tool = "finish_task".to_string();
+                tool_calls.push(tool.clone());
                 let args_parsed = serde_json::json!({"message": response});
                 println!(
                     "Tool: {}, Args: {}",
@@ -242,6 +248,7 @@ pub async fn loop_tools_until_finish(
                     serde_json::json!({"message": response}),
                 )
             };
+        tool_calls.push(tool.clone());
         println!(
             "Tool: {}, Args: {}",
             tool,
@@ -300,6 +307,9 @@ pub async fn loop_tools_until_finish(
             break;
         }
     }
+    for tool in &tool_calls {
+        println!("[{}]", tool);
+    }
     let yaml_content = serde_yaml::to_string(&history).unwrap();
     std::fs::write("./history.yaml", yaml_content).unwrap();
     Ok(())
@@ -309,6 +319,7 @@ pub async fn one_function_call(
     message: String,
     model: &str,
     retries: u32,
+    max_tokens: u32,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut history = vec![ChatCompletionRequestMessage::User(
         ChatCompletionRequestUserMessage {
@@ -316,7 +327,9 @@ pub async fn one_function_call(
             name: None,
         },
     )];
-    let response = choose_tool(history.clone(), model, retries).await?;
+    let mut tool_calls = Vec::new();
+    let response =
+        choose_tool(history.clone(), model, retries, max_tokens).await?;
     let (tool, args_parsed) = match serde_yaml::from_str(&response) {
         Ok(yaml_value) => {
             if let YamlValue::Mapping(mapping) = yaml_value {
@@ -347,6 +360,7 @@ pub async fn one_function_call(
             serde_json::json!({"message": response}),
         ),
     };
+    tool_calls.push(tool.clone());
     println!(
         "Tool: {}, Args: {}",
         tool,
@@ -387,6 +401,9 @@ pub async fn one_function_call(
             name: None,
         },
     ));
+    for tool in &tool_calls {
+        println!("[{}]", tool);
+    }
     let yaml_content = serde_yaml::to_string(&history).unwrap();
     std::fs::write("./history.yaml", yaml_content).unwrap();
     Ok(())

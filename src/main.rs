@@ -27,11 +27,18 @@ async fn main() {
     let args = Args::parse();
     let message = args.input.as_ref().unwrap_or(&"".to_string()).clone();
     if args.r#loop {
-        loop_tools_until_finish(message, &args.model, args.retries)
+        loop_tools_until_finish(
+            message,
+            &args.model,
+            args.retries,
+            args.max_tokens,
+        )
+        .await
+        .unwrap();
+    } else {
+        one_function_call(message, &args.model, args.retries, args.max_tokens)
             .await
             .unwrap();
-    } else {
-        one_function_call(message, &args.model, args.retries).await.unwrap();
     }
     return;
 }

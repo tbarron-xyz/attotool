@@ -40,7 +40,6 @@ cargo run -- --model "openai/gpt-4" --max-tokens 4000 --input "your task here"
 - `--max-tokens`: Maximum tokens for response (default: 2000)
 - `--base-url`: API base URL (default: https://openrouter.ai/api/v1)
 - `--input`: Task description
-- `--prefix`: System prompt prefix
 - `--loop`: Enable loop mode for multi-step tasks
 - `--retries`: Number of retries for API calls (default: 3)
 
