@@ -36,6 +36,7 @@ async fn main() {
         args.retries,
         args.max_tokens,
         args.max_tool_calls,
+        &args.base_url,
     )
     .await
     .unwrap();

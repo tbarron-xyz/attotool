@@ -18,7 +18,7 @@ This project implements a minimalistic agent that uses YAML-formatted tool calls
 1. Ensure you have Rust installed: https://rustup.rs/
 2. Clone this repository
 3. Build the project: `cargo build --release`
-4. Set your OpenRouter API key: `export OPENROUTER_API_KEY=your_key_here`
+4. Set your OpenRouter (or OpenAI, to the same env var) API key: `export OPENROUTER_API_KEY=your_key_here`
 
 ## Usage
 
@@ -37,7 +37,7 @@ cargo run -- --model "openai/gpt-4" --max-tokens 4000 --input "your task here"
 
 - `--model`: LLM model to use (default: openai/gpt-oss-20b)
 - `--max-tokens`: Maximum tokens for response (default: 2000)
-- `--base-url`: API base URL (default: https://openrouter.ai/api/v1)
+- `--base-url`: API base URL (default: https://openrouter.ai/api/v1, use https://api.openai.com/v1 for OpenAI)
 - `--input`: Task description
 - `--max-tool-calls`: Maximum number of tool calls (default: 0 for infinite)
 - `--retries`: Number of retries for API calls (default: 3)

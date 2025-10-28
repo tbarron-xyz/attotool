@@ -18,12 +18,13 @@ pub async fn choose_tool(
     model: &str,
     retries: u32,
     max_tokens: u32,
+    base_url: &str,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let api_key =
         env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
     let client = Client::with_config(
         async_openai::config::OpenAIConfig::new()
-            .with_api_base("https://openrouter.ai/api/v1")
+            .with_api_base(base_url)
             .with_api_key(api_key),
     );
 
@@ -154,6 +155,7 @@ pub async fn loop_tools_until_finish(
     retries: u32,
     max_tokens: u32,
     max_tool_calls: u32,
+    base_url: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut history = vec![ChatCompletionRequestMessage::User(
         ChatCompletionRequestUserMessage {
@@ -164,7 +166,8 @@ pub async fn loop_tools_until_finish(
     let mut tool_calls = Vec::new();
     loop {
         let response =
-            choose_tool(history.clone(), model, retries, max_tokens).await?;
+            choose_tool(history.clone(), model, retries, max_tokens, base_url)
+                .await?;
         let yaml_value: YamlValue = match serde_yaml::from_str(&response) {
             Ok(v) => v,
             Err(_) => {
