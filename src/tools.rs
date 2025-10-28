@@ -70,16 +70,21 @@ impl Tool {
     pub async fn execute(
         &self,
         args: Value,
+        silent: bool,
     ) -> Result<String, Box<dyn std::error::Error>> {
         match self {
-            Tool::ExecuteShellCommand => execute_shell_command(args).await,
-            Tool::ReadFile => execute_read_file(args).await,
-            Tool::WriteFile => execute_write_file(args).await,
-            Tool::FinishTask => execute_finish_task(args).await,
-            Tool::AskForClarification => {
-                execute_ask_for_clarification(args).await
+            Tool::ExecuteShellCommand => {
+                execute_shell_command(args, silent).await
             }
-            Tool::DescribeToUser => execute_describe_to_user(args).await,
+            Tool::ReadFile => execute_read_file(args, silent).await,
+            Tool::WriteFile => execute_write_file(args, silent).await,
+            Tool::FinishTask => execute_finish_task(args, silent).await,
+            Tool::AskForClarification => {
+                execute_ask_for_clarification(args, silent).await
+            }
+            Tool::DescribeToUser => {
+                execute_describe_to_user(args, silent).await
+            }
         }
     }
 
@@ -94,7 +99,7 @@ impl Tool {
     }
 }
 
-fn prompt_approval(prompt: &str) -> bool {
+fn prompt_approval(prompt: &str, _silent: bool) -> bool {
     println!("{}", prompt);
     io::stdout().flush().unwrap();
     let mut input = String::new();
@@ -108,13 +113,17 @@ fn prompt_approval(prompt: &str) -> bool {
 
 async fn execute_shell_command(
     args: Value,
+    silent: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let command = args["command"].as_str().unwrap_or("");
     let args_str = args["args"].as_str().unwrap_or("");
-    if !prompt_approval(&format!(
-        "Do you want to run this command: `{} {}` ? (Y/n): ",
-        command, args_str
-    )) {
+    if !prompt_approval(
+        &format!(
+            "Do you want to run this command: `{} {}` ? (Y/n): ",
+            command, args_str
+        ),
+        silent,
+    ) {
         return Ok("Command execution cancelled.".to_string());
     }
     let output = process::Command::new("zsh")
@@ -134,6 +143,7 @@ async fn execute_shell_command(
 
 async fn execute_read_file(
     args: Value,
+    _silent: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let path = args["path"].as_str().unwrap_or("");
     match fs::read_to_string(path) {
@@ -144,13 +154,14 @@ async fn execute_read_file(
 
 async fn execute_write_file(
     args: Value,
+    silent: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let path = args["path"].as_str().unwrap_or("");
     let content = args["content"].as_str().unwrap_or("");
-    if !prompt_approval(&format!(
-        "Do you want to write to file: {}? (Y/n): ",
-        path
-    )) {
+    if !prompt_approval(
+        &format!("Do you want to write to file: {}? (Y/n): ", path),
+        silent,
+    ) {
         return Ok("File write cancelled.".to_string());
     }
     match fs::write(path, content) {
@@ -161,13 +172,16 @@ async fn execute_write_file(
 
 async fn execute_finish_task(
     args: Value,
+    _silent: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let message = args["message"].as_str().unwrap_or("");
+    println!("{}", format!("Task completed: {}", message));
     Ok(format!("Task completed: {}", message))
 }
 
 async fn execute_ask_for_clarification(
     args: Value,
+    _silent: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let question = args["question"].as_str().unwrap_or("");
     println!("{}", question);
@@ -178,8 +192,10 @@ async fn execute_ask_for_clarification(
 
 async fn execute_describe_to_user(
     args: Value,
+    _silent: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let description = args["description"].as_str().unwrap_or("");
+    println!("{}", format!("Description: {}", description));
     Ok(format!("Description: {}", description))
 }
 

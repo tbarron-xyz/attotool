@@ -24,6 +24,10 @@ struct Args {
     max_tool_calls: u32,
     #[arg(long, default_value_t = 3)]
     retries: u32,
+    #[arg(long)]
+    silent: bool,
+    #[arg(long)]
+    tool_call_details: bool,
 }
 
 #[tokio::main]
@@ -37,6 +41,8 @@ async fn main() {
         args.max_tokens,
         args.max_tool_calls,
         &args.base_url,
+        args.silent,
+        args.tool_call_details,
     )
     .await
     .unwrap();

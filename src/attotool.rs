@@ -19,6 +19,7 @@ pub async fn choose_tool(
     retries: u32,
     max_tokens: u32,
     base_url: &str,
+    silent: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let api_key =
         env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
@@ -70,25 +71,31 @@ read_file:
     };
 
     for attempt in 0..retries {
-        println!("Sending openai request");
+        if !silent {
+            println!("Sending openai request");
+        }
         let response = client.chat().create(request.clone()).await?;
         let choice = response.choices.first().ok_or("No response")?;
         let content = choice.message.content.as_ref().ok_or("No content")?;
         let trimmed = content.trim();
-        println!(
-            "API Response Content (choose_tool, attempt {}):\n{}",
-            attempt + 1,
-            content
-        );
+        if !silent {
+            println!(
+                "API Response Content (choose_tool, attempt {}):\n{}",
+                attempt + 1,
+                content
+            );
+        }
         if !trimmed.is_empty() {
             // First, try parsing the entire trimmed response as YAML
             if let Ok(value) = serde_yaml::from_str::<YamlValue>(trimmed) {
                 if let YamlValue::Mapping(mapping) = value {
                     if mapping.len() > 1 {
-                        println!(
-                            "Removed {} additional tool(s) from multi-tool response",
-                            mapping.len() - 1
-                        );
+                        if !silent {
+                            println!(
+                                "Removed {} additional tool(s) from multi-tool response",
+                                mapping.len() - 1
+                            );
+                        }
                         let mut new_mapping = Mapping::new();
                         if let Some((key, val)) = mapping.iter().next() {
                             new_mapping.insert(key.clone(), val.clone());
@@ -113,10 +120,12 @@ read_file:
             {
                 if let YamlValue::Mapping(mapping) = value {
                     if mapping.len() > 1 {
-                        println!(
-                            "Removed {} additional tool(s) from multi-tool response",
-                            mapping.len() - 1
-                        );
+                        if !silent {
+                            println!(
+                                "Removed {} additional tool(s) from multi-tool response",
+                                mapping.len() - 1
+                            );
+                        }
                         let mut new_mapping = Mapping::new();
                         if let Some((key, val)) = mapping.iter().next() {
                             new_mapping.insert(key.clone(), val.clone());
@@ -140,13 +149,14 @@ read_file:
 pub async fn execute_tool_call(
     tool_name: String,
     args: Value,
+    silent: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let tools = crate::tools::get_tools();
     let tool = tools
         .into_iter()
         .find(|t| t.name() == tool_name)
         .ok_or_else(|| format!("Unknown tool: {}", tool_name))?;
-    tool.execute(args).await
+    tool.execute(args, silent).await
 }
 
 pub async fn loop_tools_until_finish(
@@ -156,6 +166,8 @@ pub async fn loop_tools_until_finish(
     max_tokens: u32,
     max_tool_calls: u32,
     base_url: &str,
+    silent: bool,
+    tool_call_details: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut history = vec![ChatCompletionRequestMessage::User(
         ChatCompletionRequestUserMessage {
@@ -165,20 +177,28 @@ pub async fn loop_tools_until_finish(
     )];
     let mut tool_calls = Vec::new();
     loop {
-        let response =
-            choose_tool(history.clone(), model, retries, max_tokens, base_url)
-                .await?;
+        let response = choose_tool(
+            history.clone(),
+            model,
+            retries,
+            max_tokens,
+            base_url,
+            silent,
+        )
+        .await?;
         let yaml_value: YamlValue = match serde_yaml::from_str(&response) {
             Ok(v) => v,
             Err(_) => {
                 let tool = "finish_task".to_string();
                 tool_calls.push(tool.clone());
                 let args_parsed = serde_json::json!({"message": response});
-                println!(
-                    "Tool: {}, Args: {}",
-                    tool,
-                    serde_yaml::to_string(&args_parsed)?
-                );
+                if !silent {
+                    println!(
+                        "Tool: {}, Args: {}",
+                        tool,
+                        serde_yaml::to_string(&args_parsed)?
+                    );
+                }
                 let assistant_content = response;
                 if !assistant_content.trim().is_empty() {
                     history.push(ChatCompletionRequestMessage::Assistant(
@@ -194,9 +214,12 @@ pub async fn loop_tools_until_finish(
                         },
                     ));
                 }
-                let result =
-                    execute_tool_call(tool.clone(), args_parsed.clone())
-                        .await?;
+                let result = execute_tool_call(
+                    tool.clone(),
+                    args_parsed.clone(),
+                    silent,
+                )
+                .await?;
                 let args_str =
                     if let serde_json::Value::Object(obj) = &args_parsed {
                         obj.iter()
@@ -214,11 +237,13 @@ pub async fn loop_tools_until_finish(
                     };
                 let prefixed_result =
                     format!("[{} {}]\n{}", tool, args_str, result);
-                println!(
-                    "Tool call result: {}",
-                    prefixed_result.chars().take(500).collect::<String>()
-                );
-                println!("---");
+                if tool_call_details {
+                    println!(
+                        "Tool call result: {}",
+                        prefixed_result.chars().take(500).collect::<String>()
+                    );
+                    println!("---");
+                }
                 history.push(ChatCompletionRequestMessage::User(
                     ChatCompletionRequestUserMessage {
                         content: ChatCompletionRequestUserMessageContent::Text(
@@ -257,11 +282,13 @@ pub async fn loop_tools_until_finish(
                 )
             };
         tool_calls.push(tool.clone());
-        println!(
-            "Tool: {}, Args: {}",
-            tool,
-            serde_yaml::to_string(&args_parsed)?
-        );
+        if !silent {
+            println!(
+                "Tool: {}, Args: {}",
+                tool,
+                serde_yaml::to_string(&args_parsed)?
+            );
+        }
 
         let assistant_content = response;
         if !assistant_content.trim().is_empty() {
@@ -280,7 +307,8 @@ pub async fn loop_tools_until_finish(
         }
 
         let result =
-            execute_tool_call(tool.clone(), args_parsed.clone()).await?;
+            execute_tool_call(tool.clone(), args_parsed.clone(), silent)
+                .await?;
 
         let args_str = if let serde_json::Value::Object(obj) = &args_parsed {
             obj.iter()
@@ -297,11 +325,13 @@ pub async fn loop_tools_until_finish(
             "".to_string()
         };
         let prefixed_result = format!("[{} {}]\n{}", tool, args_str, result);
-        println!(
-            "Tool call result: {}",
-            prefixed_result.chars().take(500).collect::<String>()
-        );
-        println!("---");
+        if tool_call_details {
+            println!(
+                "Tool call result: {}",
+                prefixed_result.chars().take(500).collect::<String>()
+            );
+            println!("---");
+        }
         history.push(ChatCompletionRequestMessage::User(
             ChatCompletionRequestUserMessage {
                 content: ChatCompletionRequestUserMessageContent::Text(
