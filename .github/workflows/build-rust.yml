@@ -12,10 +12,12 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Cache Cargo
+        id: cache
         uses: actions/cache@v4
         with:
           path: |
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/*.rs') }}
       - name: Build
+        if: steps.cache.outputs.cache-hit != 'true'
         run: cargo build --release
