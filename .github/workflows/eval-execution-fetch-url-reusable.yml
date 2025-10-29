@@ -1,0 +1,39 @@
+name: Eval Execution Fetch URL Reusable
+
+on:
+  workflow_call:
+    inputs:
+      short_model:
+        required: true
+        type: string
+      full_model:
+        required: true
+        type: string
+    secrets:
+      OPENROUTER_API_KEY:
+        required: true
+
+jobs:
+  run-eval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Fetch cached Rust target
+        uses: actions/cache@v4
+        with:
+          path: |
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/*.rs') }}
+      - name: Run eval
+        run: ./target/release/attotool --model ${{ inputs.full_model }} --yolo --input "read the url at ./url.txt , fetch that url, and write a yaml summary of its contents to ./summary.yaml" > summary.txt
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-fetch-url-result-${{ inputs.short_model }}
+          path: |
+            summary.txt
+            history.yaml
+            summary.yaml

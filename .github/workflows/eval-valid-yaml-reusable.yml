@@ -1,0 +1,46 @@
+name: Eval Valid YAML Reusable
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        required: true
+        type: string
+      run_id:
+        required: true
+        type: string
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: eval-fetch-url-result-${{ inputs.model }}
+          run-id: ${{ inputs.run_id }}
+          path: .
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Evaluate
+        run: |
+          pip install pyyaml
+          result=$(python3 -c "
+          import yaml
+          import sys
+          try:
+            with open('summary.yaml') as f:
+              yaml.safe_load(f)
+            print('Passed')
+          except FileNotFoundError:
+            print('Failed - summary.yaml not found')
+            sys.exit(1)
+          except yaml.YAMLError as e:
+            print('Failed - invalid YAML:', str(e))
+            sys.exit(1)
+          ")
+          if [ "$result" = "Passed" ]; then
+            echo "$result"
+          else
+            echo "$result"
+            exit 1
+          fi

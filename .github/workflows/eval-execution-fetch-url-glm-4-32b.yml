@@ -1,0 +1,13 @@
+name: Eval Execution Fetch URL - glm-4-32b
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-eval:
+    uses: ./.github/workflows/eval-execution-fetch-url-reusable.yml
+    with:
+      short_model: glm-4-32b
+      full_model: z-ai/glm-4-32b
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

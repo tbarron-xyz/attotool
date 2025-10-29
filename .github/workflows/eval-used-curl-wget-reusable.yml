@@ -1,0 +1,31 @@
+name: Eval Used CURL or WGET Reusable
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        required: true
+        type: string
+      run_id:
+        required: true
+        type: string
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: eval-fetch-url-result-${{ inputs.model }}
+          run-id: ${{ inputs.run_id }}
+          path: .
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Evaluate
+        run: |
+          if grep -q "\[execute_shell_command.*\(curl\|wget\)" summary.txt; then
+            echo "Passed"
+          else
+            echo "Failed - summary.txt does not contain execute_shell_command with curl or wget"
+            exit 1
+          fi

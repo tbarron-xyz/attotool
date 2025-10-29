@@ -1,0 +1,15 @@
+name: Eval Used CURL or WGET - glm-4-32b
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Fetch URL - glm-4-32b"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-used-curl-wget-reusable.yml
+    with:
+      model: glm-4-32b
+      run_id: ${{ github.event.workflow_run.id }}
