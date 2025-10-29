@@ -8,6 +8,7 @@ pub enum Tool {
     ExecuteShellCommand,
     ReadFile,
     WriteFile,
+    ListFiles,
     FinishTask,
     AskForClarification,
     DescribeToUser,
@@ -19,6 +20,7 @@ impl Tool {
             Tool::ExecuteShellCommand => "execute_shell_command",
             Tool::ReadFile => "read_file",
             Tool::WriteFile => "write_file",
+            Tool::ListFiles => "list_files",
             Tool::FinishTask => "finish_task",
             Tool::AskForClarification => "ask_for_clarification",
             Tool::DescribeToUser => "describe_to_user",
@@ -28,10 +30,14 @@ impl Tool {
     pub fn description(&self) -> &str {
         match self {
             Tool::ExecuteShellCommand => {
-                "Executes a command with arguments on the zsh shell - includes common tools like ls, pwd, curl, cat, mkdir"
+                // not mentioning ls, cat for now
+                "Executes a command with arguments on the zsh shell - includes common tools like curl, mkdir"
             }
             Tool::ReadFile => "Reads a file on the local filesystem",
             Tool::WriteFile => "Writes a file on the local filesystem",
+            Tool::ListFiles => {
+                "Lists the contents (files and directories) of a given directory"
+            }
             Tool::FinishTask => {
                 "Marks the assigned task as completed, with a completion message"
             }
@@ -55,6 +61,7 @@ impl Tool {
                 ("path".to_string(), "string".to_string()),
                 ("content".to_string(), "string".to_string()),
             ],
+            Tool::ListFiles => vec![("path".to_string(), "string".to_string())],
             Tool::FinishTask => {
                 vec![("message".to_string(), "string".to_string())]
             }
@@ -71,19 +78,21 @@ impl Tool {
         &self,
         args: Value,
         verbose: bool,
+        yolo: bool,
     ) -> Result<String, Box<dyn std::error::Error>> {
         match self {
             Tool::ExecuteShellCommand => {
-                execute_shell_command(args, verbose).await
+                execute_shell_command(args, verbose, yolo).await
             }
-            Tool::ReadFile => execute_read_file(args, verbose).await,
-            Tool::WriteFile => execute_write_file(args, verbose).await,
-            Tool::FinishTask => execute_finish_task(args, verbose).await,
+            Tool::ReadFile => execute_read_file(args, verbose, yolo).await,
+            Tool::WriteFile => execute_write_file(args, verbose, yolo).await,
+            Tool::ListFiles => execute_list_files(args, verbose, yolo).await,
+            Tool::FinishTask => execute_finish_task(args, verbose, yolo).await,
             Tool::AskForClarification => {
-                execute_ask_for_clarification(args, verbose).await
+                execute_ask_for_clarification(args, verbose, yolo).await
             }
             Tool::DescribeToUser => {
-                execute_describe_to_user(args, verbose).await
+                execute_describe_to_user(args, verbose, yolo).await
             }
         }
     }
@@ -114,17 +123,22 @@ fn prompt_approval(prompt: &str, _verbose: bool) -> bool {
 async fn execute_shell_command(
     args: Value,
     verbose: bool,
+    yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let command = args["command"].as_str().unwrap_or("");
     let args_str = args["args"].as_str().unwrap_or("");
-    if !prompt_approval(
-        &format!(
-            "Do you want to run this command: `{} {}` ? (Y/n): ",
-            command, args_str
-        ),
-        verbose,
-    ) {
-        return Ok("Command execution cancelled.".to_string());
+    if !yolo
+        && !prompt_approval(
+            &format!(
+                "Do you want to run this command: `{} {}` ? (Y/n): ",
+                command, args_str
+            ),
+            verbose,
+        )
+    {
+        return Ok(
+            "Command execution request declined by the user.".to_string()
+        );
     }
     let output = process::Command::new("zsh")
         .arg("-c")
@@ -144,6 +158,7 @@ async fn execute_shell_command(
 async fn execute_read_file(
     args: Value,
     _verbose: bool,
+    _yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let path = args["path"].as_str().unwrap_or("");
     match fs::read_to_string(path) {
@@ -155,17 +170,20 @@ async fn execute_read_file(
 async fn execute_write_file(
     args: Value,
     verbose: bool,
+    yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let path = args["path"].as_str().unwrap_or("");
     let content = args["content"].as_str().unwrap_or("");
-    if !prompt_approval(
-        &format!(
-            "Do you want to write to file `{}` contents `{}`? (Y/n): ",
-            path, content
-        ),
-        verbose,
-    ) {
-        return Ok("File write cancelled.".to_string());
+    if !yolo
+        && !prompt_approval(
+            &format!(
+                "Do you want to write to file `{}` contents `{}`? (Y/n): ",
+                path, content
+            ),
+            verbose,
+        )
+    {
+        return Ok("File write request declined by the user.".to_string());
     }
     match fs::write(path, content) {
         Ok(_) => Ok("File written successfully".to_string()),
@@ -176,6 +194,7 @@ async fn execute_write_file(
 async fn execute_finish_task(
     args: Value,
     _verbose: bool,
+    _yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let message = args["message"].as_str().unwrap_or("");
     println!("{}", format!("Task completed: {}", message));
@@ -185,6 +204,7 @@ async fn execute_finish_task(
 async fn execute_ask_for_clarification(
     args: Value,
     _verbose: bool,
+    _yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let question = args["question"].as_str().unwrap_or("");
     println!("{}", question);
@@ -193,9 +213,31 @@ async fn execute_ask_for_clarification(
     Ok(answer.trim().to_string())
 }
 
+async fn execute_list_files(
+    args: Value,
+    _verbose: bool,
+    _yolo: bool,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let path = args["path"].as_str().unwrap_or("");
+    let output = process::Command::new("gls")
+        .arg(path)
+        .arg("--ignore=target")
+        .output()
+        .expect("Failed to execute list_files");
+    let mut result = format!("{}", String::from_utf8_lossy(&output.stdout));
+    if !output.stderr.is_empty() {
+        result.push_str(&format!(
+            "\nStderr: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    Ok(result)
+}
+
 async fn execute_describe_to_user(
     args: Value,
     _verbose: bool,
+    _yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let description = args["description"].as_str().unwrap_or("");
     println!("{}", format!("Description: {}", description));
@@ -207,6 +249,7 @@ pub fn get_tools() -> Vec<Tool> {
         Tool::ExecuteShellCommand,
         Tool::ReadFile,
         Tool::WriteFile,
+        Tool::ListFiles,
         Tool::FinishTask,
         Tool::AskForClarification,
         Tool::DescribeToUser,

@@ -1,0 +1,15 @@
+name: Eval Execution - gpt-4o-mini
+
+on:
+  workflow_run:
+    workflows: ["CI Build"]
+    types:
+      - completed
+
+jobs:
+  run-eval:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-execution-reusable.yml
+    with:
+      short_model: gpt-4o-mini
+      full_model: openai/gpt-4o-mini

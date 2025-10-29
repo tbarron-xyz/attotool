@@ -1,0 +1,26 @@
+name: Eval Finished Task Reusable
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        required: true
+        type: string
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: eval-result-${{ inputs.model }}
+          path: .
+      - name: Evaluate
+        run: |
+          if grep -q "\[finish_task" summary.txt; then
+            echo "Passed"
+          else
+            echo "Failed"
+            exit 1
+          fi

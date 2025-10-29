@@ -1,0 +1,15 @@
+name: Eval Execution - grok-code-fast-1
+
+on:
+  workflow_run:
+    workflows: ["CI Build"]
+    types:
+      - completed
+
+jobs:
+  run-eval:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-execution-reusable.yml
+    with:
+      short_model: grok-code-fast-1
+      full_model: x-ai/grok-code-fast-1

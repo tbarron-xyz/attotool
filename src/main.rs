@@ -30,6 +30,8 @@ struct Args {
     tool_call_details: bool,
     #[arg(long)]
     disable_agents_md: bool,
+    #[arg(long)]
+    yolo: bool,
 }
 
 #[tokio::main]
@@ -46,6 +48,7 @@ async fn main() {
         args.verbose,
         args.tool_call_details,
         args.disable_agents_md,
+        args.yolo,
     )
     .await
     .unwrap();

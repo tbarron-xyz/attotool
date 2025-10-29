@@ -141,13 +141,14 @@ pub async fn execute_tool_call(
     tool_name: String,
     args: Value,
     verbose: bool,
+    yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let tools = crate::tools::get_tools();
     let tool = tools
         .into_iter()
         .find(|t| t.name() == tool_name)
         .ok_or_else(|| format!("Unknown tool: {}", tool_name))?;
-    tool.execute(args, verbose).await
+    tool.execute(args, verbose, yolo).await
 }
 
 pub async fn loop_tools_until_finish(
@@ -160,6 +161,7 @@ pub async fn loop_tools_until_finish(
     verbose: bool,
     tool_call_details: bool,
     disable_agents_md: bool,
+    yolo: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut history = Vec::new();
     if !disable_agents_md && fs::metadata("AGENTS.md").is_ok() {
@@ -226,6 +228,7 @@ pub async fn loop_tools_until_finish(
                     tool.clone(),
                     args_parsed.clone(),
                     verbose,
+                    yolo,
                 )
                 .await?;
                 let args_str =
@@ -297,6 +300,7 @@ pub async fn loop_tools_until_finish(
                 "execute_shell_command" => "command",
                 "read_file" => "path",
                 "write_file" => "path",
+                "list_files" => "path",
                 "ask_for_clarification" => "question",
                 "describe_to_user" => "description",
                 _ => "",
@@ -330,7 +334,7 @@ pub async fn loop_tools_until_finish(
         }
 
         let result =
-            execute_tool_call(tool.clone(), args_parsed.clone(), verbose)
+            execute_tool_call(tool.clone(), args_parsed.clone(), verbose, yolo)
                 .await?;
 
         let args_str = if let serde_json::Value::Object(obj) = &args_parsed {
@@ -371,6 +375,7 @@ pub async fn loop_tools_until_finish(
             break;
         }
     }
+    println!("--- Task tool usage summary");
     for (tool, arg) in &tool_calls {
         println!("[{} {}]", tool, arg);
     }

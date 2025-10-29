@@ -1,0 +1,27 @@
+name: Eval Read 3 Files Reusable
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        required: true
+        type: string
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: eval-result-${{ inputs.model }}
+          path: .
+      - name: Evaluate
+        run: |
+          read_count=$(grep -c "\[read_file path:" summary.txt)
+          if [ "$read_count" -ge 3 ]; then
+            echo "Passed"
+          else
+            echo "Failed"
+            exit 1
+          fi

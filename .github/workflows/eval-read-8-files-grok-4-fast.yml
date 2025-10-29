@@ -1,0 +1,14 @@
+name: Eval Read 8 files - grok-4-fast
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution - grok-4-fast"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-read-8-files-reusable.yml
+    with:
+      model: grok-4-fast

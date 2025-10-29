@@ -1,0 +1,14 @@
+name: Eval Read 3 files - grok-code-fast-1
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution - grok-code-fast-1"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-read-3-files-reusable.yml
+    with:
+      model: grok-code-fast-1
