@@ -36,9 +36,9 @@ This project implements a minimalistic agent that uses YAML-formatted tool calls
 
 ## Available Tools
 
-- `execute_shell_command`: Run shell commands with arguments. **Requires explicit user confirmation.**
+- `execute_shell_command`: Run shell commands with arguments. 🟢 **Requires explicit user confirmation.**
 - `read_file`: Read file contents
-- `write_file`: Write content to file. **Requires explicit user confirmation.**
+- `write_file`: Write content to file. 🟢 **Requires explicit user confirmation.**
 - `finish_task`: Mark task as completed
 - `ask_for_clarification`: Request user input
 - `describe_to_user`: Provide descriptions or responses
@@ -88,6 +88,7 @@ cargo run -- --continue --input "your follow-up task here"
 - `--verbose`: Enable detailed output including tool calls and API responses
 - `--tool-call-details`: Show detailed tool call results and execution output
 - `--disable-agents-md`: Disable automatic loading of AGENTS.md (default: false)
+- `--yolo`: 🚩 Enable YOLO mode (skips approval prompts for destructive operations and removes ask_for_clarification tool)
 - `--continue`: Reads the existing history.yaml and continues the conversation with a new user message
 
 ## Recommended Models
