@@ -1,10 +1,10 @@
 name: Eval Execution - gpt-4o-mini
 
 on:
-  workflow_run:
-    # workflows: ["Rust Build CI"]
-    # types:
-    #   - completed
+  # workflow_run:
+  #   workflows: ["Rust Build CI"]
+  #   types:
+  #     - completed
   workflow_dispatch:
 
 jobs:

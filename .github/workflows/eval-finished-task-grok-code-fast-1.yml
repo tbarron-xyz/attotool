@@ -12,3 +12,4 @@ jobs:
     uses: ./.github/workflows/eval-finished-task-reusable.yml
     with:
       model: grok-code-fast-1
+      run_id: ${{ github.event.workflow_run.id }}

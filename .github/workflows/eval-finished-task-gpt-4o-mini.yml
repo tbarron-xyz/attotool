@@ -12,3 +12,4 @@ jobs:
     uses: ./.github/workflows/eval-finished-task-reusable.yml
     with:
       model: gpt-4o-mini
+      run_id: ${{ github.event.workflow_run.id }}
