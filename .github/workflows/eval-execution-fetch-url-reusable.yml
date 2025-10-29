@@ -25,6 +25,8 @@ jobs:
           path: |
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/*.rs') }}
+      - name: Set URL
+        run: echo "https://en.wikipedia.org/" > ./url.txt
       - name: Run eval
         run: ./target/release/attotool --model ${{ inputs.full_model }} --yolo --input "read the url at ./url.txt , fetch that url, and write a yaml summary of its contents to ./summary.yaml" > summary.txt
         env:
