@@ -99,6 +99,10 @@ Upon task completion (either via the `finish_task` tool or reaching the `max_too
 
 `Read at least 10 files in the repo and summarize your findings`
 
+[![Eval Execution - gpt-4o-mini](https://github.com/tbarron-xyz/attotool/workflows/eval-execution-gpt-4o-mini/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-gpt-4o-mini.yml)
+[![Eval Execution - grok-4-fast](https://github.com/tbarron-xyz/attotool/workflows/eval-execution-grok-4-fast/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-grok-4-fast.yml)
+[![Eval Execution - grok-code-fast-1](https://github.com/tbarron-xyz/attotool/workflows/eval-execution-grok-code-fast-1/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-grok-code-fast-1.yml)
+
 | Criteria \ Model | grok-4-fast | gpt-4o-mini | grok-code-fast-1 |
 |------------------|-------------|-------------|------------------|
 | Finished task | [![Finished task - grok-4-fast](https://github.com/tbarron-xyz/attotool/workflows/eval-finished-task-grok-4-fast/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-grok-4-fast.yml) | [![Finished task - gpt-4o-mini](https://github.com/tbarron-xyz/attotool/workflows/eval-finished-task-gpt-4o-mini/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-gpt-4o-mini.yml) | [![Finished task - grok-code-fast-1](https://github.com/tbarron-xyz/attotool/workflows/eval-finished-task-grok-code-fast-1/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-grok-code-fast-1.yml) |

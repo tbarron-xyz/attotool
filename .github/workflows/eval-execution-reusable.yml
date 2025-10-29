@@ -14,15 +14,18 @@ jobs:
   run-eval:
     runs-on: ubuntu-latest
     steps:
-      - name: Download binary
-        uses: actions/download-artifact@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
         with:
-          name: attotool-binary
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          run-id: ${{ github.event.workflow_run.id }}
+          path: |
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/*.rs') }}
       - name: Run eval
-        run: ./attotool --model ${{ inputs.full_model }} --yolo --input "Read at least 10 files in the repo and summarize your findings" > summary.txt 2>&1
+        run: ./target/release/attotool --model ${{ inputs.full_model }} --yolo --input "Read at least 10 files in the repo and summarize your findings" > summary.txt 2>&1
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       - name: Upload artifact
