@@ -11,7 +11,7 @@ use async_openai::{
 };
 use serde_json::Value;
 use serde_yaml::{Mapping, Value as YamlValue};
-use std::env;
+use std::{env, ptr::null};
 use std::fs;
 
 fn parse_and_normalize_yaml(
@@ -267,29 +267,24 @@ pub async fn loop_tools_until_finish(
                 break;
             }
         };
-        let (tool, args_parsed) =
-            if let YamlValue::Mapping(mapping) = yaml_value {
-                if let Some((key, value)) = mapping.into_iter().next() {
-                    if let YamlValue::String(tool_name) = key {
-                        (tool_name, serde_json::to_value(value)?)
-                    } else {
-                        (
-                            "finish_task".to_string(),
-                            serde_json::json!({"message": response}),
-                        )
-                    }
-                } else {
-                    (
-                        "finish_task".to_string(),
-                        serde_json::json!({"message": response}),
-                    )
+        let mut tool = "".to_string();
+        let mut args_parsed = serde_json::to_value({})?;
+        let mut parse_success = false;
+
+        if let YamlValue::Mapping(mapping) = yaml_value {
+            if let Some((key, value)) = mapping.into_iter().next() {
+                if let YamlValue::String(tool_name) = key {
+                    tool = tool_name;
+                    args_parsed = serde_json::to_value(value)?;
+                    parse_success = true;
                 }
-            } else {
-                (
-                    "finish_task".to_string(),
-                    serde_json::json!({"message": response}),
-                )
-            };
+            }
+        }
+
+        if !parse_success  {
+            tool = "finish_task".to_string(); 
+            args_parsed = serde_json::json!({"message": response.clone()});
+        }
 
         let primary_value = if tool == "finish_task" {
             args_parsed["message"].as_str().unwrap_or("").to_string()
