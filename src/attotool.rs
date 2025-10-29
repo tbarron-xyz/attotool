@@ -46,6 +46,7 @@ pub async fn choose_tool(
     max_tokens: u32,
     base_url: &str,
     verbose: bool,
+    yolo: bool,
 ) -> Result<Mapping, Box<dyn std::error::Error>> {
     let api_key =
         env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
@@ -55,7 +56,7 @@ pub async fn choose_tool(
             .with_api_key(api_key),
     );
 
-    let tools = crate::tools::get_tools();
+    let tools = crate::tools::get_tools(yolo);
     let available_tools_text =
         tools.iter().map(|t| t.format()).collect::<Vec<_>>().join("\n");
     let current_dir = std::env::current_dir()
@@ -150,7 +151,7 @@ pub async fn execute_tool_call(
     verbose: bool,
     yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    let tools = crate::tools::get_tools();
+    let tools = crate::tools::get_tools(yolo);
     let tool = tools
         .into_iter()
         .find(|t| t.name() == tool_name)
@@ -214,6 +215,7 @@ pub async fn loop_tools_until_finish(
             max_tokens,
             base_url,
             verbose,
+            yolo,
         )
         .await?;
         let yaml_value = YamlValue::Mapping(mapping.clone());

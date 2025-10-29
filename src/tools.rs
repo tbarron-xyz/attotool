@@ -254,14 +254,17 @@ async fn execute_describe_to_user(
     Ok(format!("Description: {}", description))
 }
 
-pub fn get_tools() -> Vec<Tool> {
-    vec![
+pub fn get_tools(yolo: bool) -> Vec<Tool> {
+    let mut tools = vec![
         Tool::ExecuteShellCommand,
         Tool::ReadFile,
         Tool::WriteFile,
         // Tool::ListFiles,
         Tool::FinishTask,
-        Tool::AskForClarification,
         Tool::DescribeToUser,
-    ]
+    ];
+    if !yolo {
+        tools.push(Tool::AskForClarification);
+    }
+    tools
 }
