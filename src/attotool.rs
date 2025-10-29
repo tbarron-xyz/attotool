@@ -162,28 +162,42 @@ pub async fn loop_tools_until_finish(
     tool_call_details: bool,
     disable_agents_md: bool,
     yolo: bool,
+    continue_task: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut history = Vec::new();
-    if !disable_agents_md && fs::metadata("AGENTS.md").is_ok() {
-        if let Ok(content) = fs::read_to_string("AGENTS.md") {
-            let formatted =
-                format!("[read_file path: 'AGENTS.md']\n{}", content);
-            history.push(ChatCompletionRequestMessage::User(
-                ChatCompletionRequestUserMessage {
-                    content: ChatCompletionRequestUserMessageContent::Text(
-                        formatted,
-                    ),
-                    name: None,
-                },
-            ));
+    if continue_task {
+        let history_yaml = fs::read_to_string("history.yaml")
+            .expect("Failed to read history.yaml");
+        history = serde_yaml::from_str(&history_yaml)
+            .expect("Failed to parse history.yaml");
+        history.push(ChatCompletionRequestMessage::User(
+            ChatCompletionRequestUserMessage {
+                content: ChatCompletionRequestUserMessageContent::Text(message),
+                name: None,
+            },
+        ));
+    } else {
+        if !disable_agents_md && fs::metadata("AGENTS.md").is_ok() {
+            if let Ok(content) = fs::read_to_string("AGENTS.md") {
+                let formatted =
+                    format!("[read_file path: 'AGENTS.md']\n{}", content);
+                history.push(ChatCompletionRequestMessage::User(
+                    ChatCompletionRequestUserMessage {
+                        content: ChatCompletionRequestUserMessageContent::Text(
+                            formatted,
+                        ),
+                        name: None,
+                    },
+                ));
+            }
         }
+        history.push(ChatCompletionRequestMessage::User(
+            ChatCompletionRequestUserMessage {
+                content: ChatCompletionRequestUserMessageContent::Text(message),
+                name: None,
+            },
+        ));
     }
-    history.push(ChatCompletionRequestMessage::User(
-        ChatCompletionRequestUserMessage {
-            content: ChatCompletionRequestUserMessageContent::Text(message),
-            name: None,
-        },
-    ));
     let mut tool_calls: Vec<(String, String)> = Vec::new();
     loop {
         let response = choose_tool(

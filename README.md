@@ -31,7 +31,10 @@ cargo run -- --input "read ./url.txt, fetch that url and describe the result as 
 cargo run -- --max-tool-calls 1 --input "curl the ubuntu homepage"
 
 # Specify model and other options
-cargo run -- --model "openai/gpt-4" --max-tokens 4000 --input "your task here"
+cargo run -- --model "openai/gpt-4" --max-tokens 4000 --input "your task here" --tool-call-details
+
+# Continue a previous conversation
+cargo run -- --continue --input "your follow-up task here"
 ```
 
 ### CLI Options
@@ -45,6 +48,7 @@ cargo run -- --model "openai/gpt-4" --max-tokens 4000 --input "your task here"
 - `--verbose`: Enable detailed output including tool calls and API responses
 - `--tool-call-details`: Show detailed tool call results and execution output
 - `--disable-agents-md`: Disable automatic loading of AGENTS.md (default: false)
+- `--continue`: Reads the existing history.yaml and continues the conversation with a new user message
 
 ## Recommended Models
 
@@ -68,8 +72,8 @@ The following models have been tested and have worked at least once with attotoo
 ## Available Tools
 
 - `execute_shell_command`: Run shell commands with arguments. **Requires explicit user confirmation.**
-- `read_file`: Read file contents. **Requires explicit user confirmation.**
-- `write_file`: Write content to files
+- `read_file`: Read file contents
+- `write_file`: Write content to file. **Requires explicit user confirmation.**
 - `finish_task`: Mark task as completed
 - `ask_for_clarification`: Request user input
 - `describe_to_user`: Provide descriptions or responses
@@ -99,12 +103,12 @@ Upon task completion (either via the `finish_task` tool or reaching the `max_too
 
 `Read at least 10 files in the repo and summarize your findings`
 
-[![Eval Execution - gpt-4o-mini](https://github.com/tbarron-xyz/attotool/workflows/eval-execution-gpt-4o-mini/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-gpt-4o-mini.yml)
-[![Eval Execution - grok-4-fast](https://github.com/tbarron-xyz/attotool/workflows/eval-execution-grok-4-fast/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-grok-4-fast.yml)
-[![Eval Execution - grok-code-fast-1](https://github.com/tbarron-xyz/attotool/workflows/eval-execution-grok-code-fast-1/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-grok-code-fast-1.yml)
+[![Eval Execution - gpt-4o-mini](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-gpt-4o-mini.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-gpt-4o-mini.yml)
+[![Eval Execution - grok-4-fast](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-grok-4-fast.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-grok-4-fast.yml)
+[![Eval Execution - grok-code-fast-1](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-grok-code-fast-1.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-grok-code-fast-1.yml)
 
 | Criteria \ Model | grok-4-fast | gpt-4o-mini | grok-code-fast-1 |
 |------------------|-------------|-------------|------------------|
-| Finished task | [![Finished task - grok-4-fast](https://github.com/tbarron-xyz/attotool/workflows/eval-finished-task-grok-4-fast/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-grok-4-fast.yml) | [![Finished task - gpt-4o-mini](https://github.com/tbarron-xyz/attotool/workflows/eval-finished-task-gpt-4o-mini/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-gpt-4o-mini.yml) | [![Finished task - grok-code-fast-1](https://github.com/tbarron-xyz/attotool/workflows/eval-finished-task-grok-code-fast-1/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-grok-code-fast-1.yml) |
-| Read 3 files | [![Read 3 files - grok-4-fast](https://github.com/tbarron-xyz/attotool/workflows/eval-read-3-files-grok-4-fast/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-grok-4-fast.yml) | [![Read 3 files - gpt-4o-mini](https://github.com/tbarron-xyz/attotool/workflows/eval-read-3-files-gpt-4o-mini/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-gpt-4o-mini.yml) | [![Read 3 files - grok-code-fast-1](https://github.com/tbarron-xyz/attotool/workflows/eval-read-3-files-grok-code-fast-1/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-grok-code-fast-1.yml) |
-| Read 8 files | [![Read 8 files - grok-4-fast](https://github.com/tbarron-xyz/attotool/workflows/eval-read-8-files-grok-4-fast/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-grok-4-fast.yml) | [![Read 8 files - gpt-4o-mini](https://github.com/tbarron-xyz/attotool/workflows/eval-read-8-files-gpt-4o-mini/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-gpt-4o-mini.yml) | [![Read 8 files - grok-code-fast-1](https://github.com/tbarron-xyz/attotool/workflows/eval-read-8-files-grok-code-fast-1/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-grok-code-fast-1.yml) |
+| Finished task | [![Finished task - grok-4-fast](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-grok-4-fast.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-grok-4-fast.yml) | [![Finished task - gpt-4o-mini](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-gpt-4o-mini.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-gpt-4o-mini.yml) | [![Finished task - grok-code-fast-1](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-grok-code-fast-1.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-grok-code-fast-1.yml) |
+| Read 3 files | [![Read 3 files - grok-4-fast](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-grok-4-fast.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-grok-4-fast.yml) | [![Read 3 files - gpt-4o-mini](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-gpt-4o-mini.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-gpt-4o-mini.yml) | [![Read 3 files - grok-code-fast-1](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-grok-code-fast-1.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-grok-code-fast-1.yml) |
+| Read 8 files | [![Read 8 files - grok-4-fast](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-grok-4-fast.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-grok-4-fast.yml) | [![Read 8 files - gpt-4o-mini](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-gpt-4o-mini.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-gpt-4o-mini.yml) | [![Read 8 files - grok-code-fast-1](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-grok-code-fast-1.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-grok-code-fast-1.yml) |

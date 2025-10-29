@@ -32,6 +32,11 @@ struct Args {
     disable_agents_md: bool,
     #[arg(long)]
     yolo: bool,
+    #[arg(
+        long,
+        help = "Reads the existing history.yaml and continues the conversation with a new user message"
+    )]
+    r#continue: bool,
 }
 
 #[tokio::main]
@@ -49,6 +54,7 @@ async fn main() {
         args.tool_call_details,
         args.disable_agents_md,
         args.yolo,
+        args.r#continue,
     )
     .await
     .unwrap();
