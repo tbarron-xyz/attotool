@@ -1,0 +1,15 @@
+name: Eval Used CURL or WGET - gpt-4o-mini
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Fetch URL - gpt-4o-mini"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-used-curl-wget-reusable.yml
+    with:
+      model: gpt-4o-mini
+      run_id: ${{ github.event.workflow_run.id }}

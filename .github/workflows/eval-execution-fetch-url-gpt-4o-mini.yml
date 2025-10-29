@@ -1,0 +1,13 @@
+name: Eval Execution Fetch URL - gpt-4o-mini
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-eval:
+    uses: ./.github/workflows/eval-execution-fetch-url-reusable.yml
+    with:
+      short_model: gpt-4o-mini
+      full_model: openai/gpt-4o-mini
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
