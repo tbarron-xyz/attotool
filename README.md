@@ -5,7 +5,7 @@ A tiny YAML-tool-calling agent built from scratch in Rust.
 [![build docker image](https://github.com/tbarron-xyz/attotool/actions/workflows/build-docker.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/build-docker.yml)
 [![build rust](https://github.com/tbarron-xyz/attotool/actions/workflows/ci-build.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/ci-build.yml)
 
-This project implements a minimalistic agent that uses YAML-formatted tool calls to interact with the local system. It leverages large language models (via OpenAI-compatible API, default OpenRouter) to choose and execute tools in a compact, structured, human-readable format.
+attotool is a minimalistic agent that uses YAML-formatted tool calls to interact with the local system. It lets large language models choose and execute tools in a loop until task completion, in a compact, structured, human-readable format.
 
 ## Eval Results
 
@@ -79,7 +79,7 @@ cargo run -- --continue --input "your follow-up task here"
 
 ### CLI Options
 
-- `--model`: LLM model to use (default: z-ai/glm-4-32b)
+- `--model`: LLM model to use (default: mistralai/mistral-small-3.1-24b-instruct)
 - `--max-tokens`: Maximum tokens for response (default: 2000)
 - `--base-url`: API base URL (default: https://openrouter.ai/api/v1, use https://api.openai.com/v1 for OpenAI)
 - `--input`: Task description
@@ -95,7 +95,7 @@ cargo run -- --continue --input "your follow-up task here"
 
 The following models have been tested and have worked at least once with attotool:
 
-- **z-ai/glm-4-32b**
+- z-ai/glm-4-32b
 - mistralai/mistral-7b-instruct
 - google/gemma-3-27b-it
 - openai/gpt-oss-20b
@@ -103,7 +103,7 @@ The following models have been tested and have worked at least once with attotoo
 - qwen/qwen-2.5-7b-instruct
 - qwen/qwen-2.5-72b-instruct
 - mistralai/mistral-nemo
-- mistralai/mistral-small-3.1-24b-instruct
+- **mistralai/mistral-small-3.1-24b-instruct**
 - mistralai/devstral-small-2505
 - deepseek/deepseek-chat-v3-0324
 - x-ai/grok-code-fast-1
