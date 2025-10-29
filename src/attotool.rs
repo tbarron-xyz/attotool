@@ -151,6 +151,49 @@ pub async fn execute_tool_call(
     tool.execute(args, verbose, yolo).await
 }
 
+async fn handle_yaml_parse_error(
+    response: &str,
+    tool_calls: &mut Vec<(String, String)>,
+    history: &mut Vec<ChatCompletionRequestMessage>,
+    verbose: bool,
+    yolo: bool,
+    tool_call_details: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let tool = "finish_task".to_string();
+    tool_calls.push((tool.clone(), "Invalid yaml, finishing task".to_string()));
+    let args = serde_json::json!({"message": response});
+    let assistant_content = response;
+    if !assistant_content.trim().is_empty() {
+        history.push(ChatCompletionRequestMessage::Assistant(
+            ChatCompletionRequestAssistantMessage {
+                content: Some(
+                    ChatCompletionRequestAssistantMessageContent::Text(
+                        assistant_content.to_string(),
+                    ),
+                ),
+                name: None,
+                tool_calls: None,
+                ..Default::default()
+            },
+        ));
+    }
+    let result =
+        execute_tool_call(tool.clone(), args.clone(), verbose, yolo).await?;
+    let prefixed_result = format!(
+        "[{} message: 'Invalid yaml, finishing task']\n{}",
+        tool, result
+    );
+    history.push(ChatCompletionRequestMessage::User(
+        ChatCompletionRequestUserMessage {
+            content: ChatCompletionRequestUserMessageContent::Text(
+                prefixed_result,
+            ),
+            name: None,
+        },
+    ));
+    Ok(())
+}
+
 pub async fn loop_tools_until_finish(
     message: String,
     model: &str,
@@ -212,75 +255,16 @@ pub async fn loop_tools_until_finish(
         let yaml_value: YamlValue = match serde_yaml::from_str(&response) {
             Ok(v) => v,
             Err(_) => {
-                let tool = "finish_task".to_string();
-                let primary_value = response.clone();
-                tool_calls.push((tool.clone(), primary_value));
-                let args_parsed = serde_json::json!({"message": response});
-                if verbose {
-                    println!(
-                        "Tool: {}, Args: {}",
-                        tool,
-                        serde_yaml::to_string(&args_parsed)?
-                    );
-                }
-                let assistant_content = response;
-                if !assistant_content.trim().is_empty() {
-                    history.push(ChatCompletionRequestMessage::Assistant(
-                        ChatCompletionRequestAssistantMessage {
-                            content: Some(
-                                ChatCompletionRequestAssistantMessageContent::Text(
-                                    assistant_content,
-                                ),
-                            ),
-                            name: None,
-                            tool_calls: None,
-                            ..Default::default()
-                        },
-                    ));
-                }
-                let result = execute_tool_call(
-                    tool.clone(),
-                    args_parsed.clone(),
+                handle_yaml_parse_error(
+                    &response,
+                    &mut tool_calls,
+                    &mut history,
                     verbose,
                     yolo,
+                    tool_call_details,
                 )
                 .await?;
-                let args_str =
-                    if let serde_json::Value::Object(obj) = &args_parsed {
-                        obj.iter()
-                            .map(|(k, v)| {
-                                if let serde_json::Value::String(s) = v {
-                                    format!("{}: '{}'", k, s)
-                                } else {
-                                    format!("{}: {}", k, v.to_string())
-                                }
-                            })
-                            .collect::<Vec<_>>()
-                            .join(" ")
-                    } else {
-                        "".to_string()
-                    };
-                let prefixed_result =
-                    format!("[{} {}]\n{}", tool, args_str, result);
-                if tool_call_details {
-                    println!(
-                        "Tool call result: {}",
-                        prefixed_result.chars().take(500).collect::<String>()
-                    );
-                    println!("---");
-                }
-                history.push(ChatCompletionRequestMessage::User(
-                    ChatCompletionRequestUserMessage {
-                        content: ChatCompletionRequestUserMessageContent::Text(
-                            prefixed_result,
-                        ),
-                        name: None,
-                    },
-                ));
-                if tool == "finish_task" {
-                    break;
-                }
-                continue;
+                break;
             }
         };
         let (tool, args_parsed) =
