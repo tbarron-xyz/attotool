@@ -13,3 +13,5 @@ jobs:
     with:
       short_model: gpt-4o-mini
       full_model: openai/gpt-4o-mini
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

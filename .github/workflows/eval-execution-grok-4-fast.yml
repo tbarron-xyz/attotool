@@ -13,3 +13,5 @@ jobs:
     with:
       short_model: grok-4-fast
       full_model: x-ai/grok-4-fast
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

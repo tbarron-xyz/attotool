@@ -9,6 +9,9 @@ on:
       full_model:
         required: true
         type: string
+    secrets:
+      OPENROUTER_API_KEY:
+        required: true
 
 jobs:
   run-eval:
