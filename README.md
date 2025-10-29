@@ -44,6 +44,7 @@ cargo run -- --model "openai/gpt-4" --max-tokens 4000 --input "your task here"
 - `--retries`: Number of retries for API calls (default: 3)
 - `--verbose`: Enable detailed output including tool calls and API responses
 - `--tool-call-details`: Show detailed tool call results and execution output
+- `--disable-agents-md`: Disable automatic loading of AGENTS.md (default: false)
 
 ## Recommended Models
 
@@ -66,8 +67,8 @@ The following models have been tested and have worked at least once with attotoo
 
 ## Available Tools
 
-- `execute_shell_command`: Run shell commands with arguments
-- `read_file`: Read file contents
+- `execute_shell_command`: Run shell commands with arguments. **Requires explicit user confirmation.**
+- `read_file`: Read file contents. **Requires explicit user confirmation.**
 - `write_file`: Write content to files
 - `finish_task`: Mark task as completed
 - `ask_for_clarification`: Request user input

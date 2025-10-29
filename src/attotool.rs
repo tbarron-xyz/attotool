@@ -159,9 +159,10 @@ pub async fn loop_tools_until_finish(
     base_url: &str,
     verbose: bool,
     tool_call_details: bool,
+    disable_agents_md: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut history = Vec::new();
-    if fs::metadata("AGENTS.md").is_ok() {
+    if !disable_agents_md && fs::metadata("AGENTS.md").is_ok() {
         if let Ok(content) = fs::read_to_string("AGENTS.md") {
             let formatted =
                 format!("[read_file path: 'AGENTS.md']\n{}", content);
