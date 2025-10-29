@@ -31,7 +31,7 @@ impl Tool {
         match self {
             Tool::ExecuteShellCommand => {
                 // not mentioning ls, cat for now
-                "Executes a command with arguments on the zsh shell - includes common tools like curl, mkdir"
+                "Executes a command with arguments on the bash shell - includes common tools like curl, mkdir"
             }
             Tool::ReadFile => "Reads a file on the local filesystem",
             Tool::WriteFile => "Writes a file on the local filesystem",
@@ -140,7 +140,7 @@ async fn execute_shell_command(
             "Command execution request declined by the user.".to_string()
         );
     }
-    let output = match process::Command::new("zsh")
+    let output = match process::Command::new("bash")
         .arg("-c")
         .arg(format!("{} {}", command, args_str))
         .output()
