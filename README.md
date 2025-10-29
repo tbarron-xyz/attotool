@@ -11,6 +11,7 @@ This project implements a minimalistic agent that uses YAML-formatted tool calls
 - **Optional Tool Call Limit**: Control the maximum number of tool calls (0 for infinite loop, 1 for single call, etc.)
 - **Approval Prompts**: User confirmation for potentially destructive operations
 - **Conversation History**: Saves interaction history to `history.yaml`
+- **AGENTS.md Support**: Automatically loads ./AGENTS.md as the first user message
 - **Rust Implementation**: Lightweight, fast, and memory-safe
 
 ## Installation

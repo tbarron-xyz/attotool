@@ -12,6 +12,7 @@ use async_openai::{
 use serde_json::Value;
 use serde_yaml::{Mapping, Value as YamlValue};
 use std::env;
+use std::fs;
 
 fn parse_and_normalize_yaml(
     input: &str,
@@ -159,12 +160,27 @@ pub async fn loop_tools_until_finish(
     verbose: bool,
     tool_call_details: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut history = vec![ChatCompletionRequestMessage::User(
+    let mut history = Vec::new();
+    if fs::metadata("AGENTS.md").is_ok() {
+        if let Ok(content) = fs::read_to_string("AGENTS.md") {
+            let formatted =
+                format!("[read_file path: 'AGENTS.md']\n{}", content);
+            history.push(ChatCompletionRequestMessage::User(
+                ChatCompletionRequestUserMessage {
+                    content: ChatCompletionRequestUserMessageContent::Text(
+                        formatted,
+                    ),
+                    name: None,
+                },
+            ));
+        }
+    }
+    history.push(ChatCompletionRequestMessage::User(
         ChatCompletionRequestUserMessage {
             content: ChatCompletionRequestUserMessageContent::Text(message),
             name: None,
         },
-    )];
+    ));
     let mut tool_calls: Vec<(String, String)> = Vec::new();
     loop {
         let response = choose_tool(
