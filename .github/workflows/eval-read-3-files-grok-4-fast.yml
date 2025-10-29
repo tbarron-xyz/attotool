@@ -12,3 +12,4 @@ jobs:
     uses: ./.github/workflows/eval-read-3-files-reusable.yml
     with:
       model: grok-4-fast
+      run_id: ${{ github.event.workflow_run.id }}

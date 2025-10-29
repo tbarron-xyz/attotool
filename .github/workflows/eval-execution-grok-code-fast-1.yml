@@ -9,7 +9,7 @@ on:
 
 jobs:
   run-eval:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/eval-execution-reusable.yml
     with:
       short_model: grok-code-fast-1

@@ -20,6 +20,7 @@ jobs:
           name: eval-result-${{ inputs.model }}
           run-id: ${{ inputs.run_id }}
           path: .
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Evaluate
         run: |
           if grep -q "\[finish_task" summary.txt; then

@@ -6,6 +6,9 @@ on:
       model:
         required: true
         type: string
+      run_id:
+        required: true
+        type: string
 
 jobs:
   evaluate:
@@ -15,10 +18,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: eval-result-${{ inputs.model }}
+          run-id: ${{ inputs.run_id }}
           path: .
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Evaluate
         run: |
-          read_count=$(grep -c "\[read_file path:" summary.txt)
+          read_count=$(grep -c "\[read_file " summary.txt)
           if [ "$read_count" -ge 3 ]; then
             echo "Passed"
           else
