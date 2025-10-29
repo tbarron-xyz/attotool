@@ -140,11 +140,16 @@ async fn execute_shell_command(
             "Command execution request declined by the user.".to_string()
         );
     }
-    let output = process::Command::new("zsh")
+    let output = match process::Command::new("zsh")
         .arg("-c")
         .arg(format!("{} {}", command, args_str))
         .output()
-        .expect("Failed to execute command");
+    {
+        Ok(output) => output,
+        Err(e) => {
+            return Err(format!("Failed to execute command: {}", e).into());
+        }
+    };
     let mut result = format!("{}", String::from_utf8_lossy(&output.stdout));
     if !output.stderr.is_empty() {
         result.push_str(&format!(
@@ -219,11 +224,16 @@ async fn execute_list_files(
     _yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let path = args["path"].as_str().unwrap_or("");
-    let output = process::Command::new("gls")
+    let output = match process::Command::new("gls")
         .arg(path)
         .arg("--ignore=target")
         .output()
-        .expect("Failed to execute list_files");
+    {
+        Ok(output) => output,
+        Err(e) => {
+            return Err(format!("Failed to execute list_files: {}", e).into());
+        }
+    };
     let mut result = format!("{}", String::from_utf8_lossy(&output.stdout));
     if !output.stderr.is_empty() {
         result.push_str(&format!(

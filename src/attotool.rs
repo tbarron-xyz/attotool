@@ -347,10 +347,6 @@ pub async fn loop_tools_until_finish(
             ));
         }
 
-        let result =
-            execute_tool_call(tool.clone(), args_parsed.clone(), verbose, yolo)
-                .await?;
-
         let args_str = if let serde_json::Value::Object(obj) = &args_parsed {
             obj.iter()
                 .map(|(k, v)| {
@@ -365,6 +361,36 @@ pub async fn loop_tools_until_finish(
         } else {
             "".to_string()
         };
+
+        let result = match execute_tool_call(
+            tool.clone(),
+            args_parsed.clone(),
+            verbose,
+            yolo,
+        )
+        .await
+        {
+            Ok(result) => result,
+            Err(e) => {
+                let failure_message =
+                    format!("[FAILURE {} {}]", tool, args_str);
+                if tool_call_details {
+                    println!("Tool call failed: {}", failure_message);
+                    println!("Error: {}", e);
+                    println!("---");
+                }
+                history.push(ChatCompletionRequestMessage::User(
+                    ChatCompletionRequestUserMessage {
+                        content: ChatCompletionRequestUserMessageContent::Text(
+                            failure_message,
+                        ),
+                        name: None,
+                    },
+                ));
+                continue;
+            }
+        };
+
         let prefixed_result = format!("[{} {}]\n{}", tool, args_str, result);
         if tool_call_details {
             println!(
