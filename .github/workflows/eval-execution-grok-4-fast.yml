@@ -5,6 +5,8 @@ on:
     workflows: ["Rust Build CI"]
     types:
       - completed
+  workflow_dispatch:
+
 
 jobs:
   run-eval:
