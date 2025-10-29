@@ -2,6 +2,9 @@
 
 A tiny YAML-tool-calling agent built from scratch in Rust.
 
+[![build docker image](https://github.com/tbarron-xyz/attotool/actions/workflows/build-docker.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/build-docker.yml)
+[![build rust](https://github.com/tbarron-xyz/attotool/actions/workflows/ci-build.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/ci-build.yml)
+
 This project implements a minimalistic agent that uses YAML-formatted tool calls to interact with the local system. It leverages large language models (via OpenAI-compatible API, default OpenRouter) to choose and execute tools in a compact, structured, human-readable format.
 
 ## Features
