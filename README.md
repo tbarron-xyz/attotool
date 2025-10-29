@@ -16,6 +16,7 @@ This project implements a minimalistic agent that uses YAML-formatted tool calls
 - **Conversation History**: Saves interaction history to `history.yaml`
 - **AGENTS.md Support**: Automatically loads ./AGENTS.md as the first user message
 - **Rust Implementation**: Lightweight, fast, and memory-safe
+- **Evals in GH Actions**: Automated workflows for evaluating agent performance across multiple language models on standardized tasks
 
 ## Installation
 
@@ -102,7 +103,7 @@ execute_shell_command:
 
 Upon task completion (either via the `finish_task` tool or reaching the `max_tool_calls` limit), the agent prints a summary of all executed tool calls in bracketed format (e.g., `[execute_shell_command]`, `[read_file]`). Additionally, the full conversation history, including all tool interactions and responses, is saved to `history.yaml` for review and debugging. This provides transparency into the agent's decision-making process and allows users to audit the sequence of actions taken.
 
-## Evaluation Results
+## Eval Results
 
 `Read at least 10 files in the repo and summarize your findings`
 
