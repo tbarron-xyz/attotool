@@ -165,7 +165,7 @@ pub async fn loop_tools_until_finish(
             name: None,
         },
     )];
-    let mut tool_calls = Vec::new();
+    let mut tool_calls: Vec<(String, String)> = Vec::new();
     loop {
         let response = choose_tool(
             history.clone(),
@@ -180,7 +180,8 @@ pub async fn loop_tools_until_finish(
             Ok(v) => v,
             Err(_) => {
                 let tool = "finish_task".to_string();
-                tool_calls.push(tool.clone());
+                let primary_value = response.clone();
+                tool_calls.push((tool.clone(), primary_value));
                 let args_parsed = serde_json::json!({"message": response});
                 if verbose {
                     println!(
@@ -271,7 +272,22 @@ pub async fn loop_tools_until_finish(
                     serde_json::json!({"message": response}),
                 )
             };
-        tool_calls.push(tool.clone());
+
+        let primary_value = if tool == "finish_task" {
+            args_parsed["message"].as_str().unwrap_or("").to_string()
+        } else {
+            let key = match tool.as_str() {
+                "execute_shell_command" => "command",
+                "read_file" => "path",
+                "write_file" => "path",
+                "ask_for_clarification" => "question",
+                "describe_to_user" => "description",
+                _ => "",
+            };
+            args_parsed[key].as_str().unwrap_or("").to_string()
+        };
+
+        tool_calls.push((tool.clone(), primary_value));
         if verbose {
             println!(
                 "Tool: {}, Args: {}",
@@ -338,8 +354,8 @@ pub async fn loop_tools_until_finish(
             break;
         }
     }
-    for tool in &tool_calls {
-        println!("[{}]", tool);
+    for (tool, arg) in &tool_calls {
+        println!("[{} {}]", tool, arg);
     }
     let yaml_content = serde_yaml::to_string(&history).unwrap();
     std::fs::write("./history.yaml", yaml_content).unwrap();

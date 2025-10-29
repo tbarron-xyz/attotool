@@ -50,11 +50,18 @@ The following models have been tested and have worked at least once with attotoo
 
 - **z-ai/glm-4-32b**
 - mistralai/mistral-7b-instruct
+- google/gemma-3-27b-it
 - openai/gpt-oss-20b
+- openai/gpt-4o-mini
 - qwen/qwen-2.5-7b-instruct
-- mistralai/mistral-small-3.1-24b-instruct
+- qwen/qwen-2.5-72b-instruct
 - mistralai/mistral-nemo
+- mistralai/mistral-small-3.1-24b-instruct
 - mistralai/devstral-small-2505
+- deepseek/deepseek-chat-v3-0324
+- x-ai/grok-code-fast-1
+- x-ai/grok-4-fast
+- x-ai/grok-3-mini
 
 ## Available Tools
 

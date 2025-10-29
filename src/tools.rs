@@ -159,7 +159,10 @@ async fn execute_write_file(
     let path = args["path"].as_str().unwrap_or("");
     let content = args["content"].as_str().unwrap_or("");
     if !prompt_approval(
-        &format!("Do you want to write to file: {}? (Y/n): ", path),
+        &format!(
+            "Do you want to write to file `{}` contents `{}`? (Y/n): ",
+            path, content
+        ),
         verbose,
     ) {
         return Ok("File write cancelled.".to_string());
