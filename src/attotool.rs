@@ -9,15 +9,14 @@ use async_openai::{
         ChatCompletionRequestUserMessageContent, CreateChatCompletionRequest,
     },
 };
-use serde_json::Value;
 use serde_yaml::{Mapping, Value as YamlValue};
-use std::{env, ptr::null};
+use std::env;
 use std::fs;
 
 fn parse_and_normalize_yaml(
     input: &str,
     verbose: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<Mapping, Box<dyn std::error::Error>> {
     if let Ok(value) = serde_yaml::from_str::<YamlValue>(input) {
         if let YamlValue::Mapping(mapping) = value {
             if mapping.len() > 1 {
@@ -31,12 +30,9 @@ fn parse_and_normalize_yaml(
                 if let Some((key, val)) = mapping.iter().next() {
                     new_mapping.insert(key.clone(), val.clone());
                 }
-                let new_yaml =
-                    serde_yaml::to_string(&YamlValue::Mapping(new_mapping))
-                        .unwrap();
-                return Ok(new_yaml.trim().to_string());
+                return Ok(new_mapping);
             } else {
-                return Ok(input.to_string());
+                return Ok(mapping);
             }
         }
     }
@@ -50,7 +46,7 @@ pub async fn choose_tool(
     max_tokens: u32,
     base_url: &str,
     verbose: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<Mapping, Box<dyn std::error::Error>> {
     let api_key =
         env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
     let client = Client::with_config(
@@ -131,7 +127,18 @@ read_file:
             {
                 return Ok(normalized);
             }
-            return Ok(trimmed.to_string());
+            // Fallback: return a mapping for finish_task
+            let mut args = Mapping::new();
+            args.insert(
+                YamlValue::String("message".to_string()),
+                YamlValue::String(trimmed.to_string()),
+            );
+            let mut mapping = Mapping::new();
+            mapping.insert(
+                YamlValue::String("finish_task".to_string()),
+                YamlValue::Mapping(args),
+            );
+            return Ok(mapping);
         }
     }
     Err("Failed to get non-empty tool choice after retries".into())
@@ -139,7 +146,7 @@ read_file:
 
 pub async fn execute_tool_call(
     tool_name: String,
-    args: Value,
+    args: YamlValue,
     verbose: bool,
     yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
@@ -149,49 +156,6 @@ pub async fn execute_tool_call(
         .find(|t| t.name() == tool_name)
         .ok_or_else(|| format!("Unknown tool: {}", tool_name))?;
     tool.execute(args, verbose, yolo).await
-}
-
-async fn handle_yaml_parse_error(
-    response: &str,
-    tool_calls: &mut Vec<(String, String)>,
-    history: &mut Vec<ChatCompletionRequestMessage>,
-    verbose: bool,
-    yolo: bool,
-    tool_call_details: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let tool = "finish_task".to_string();
-    tool_calls.push((tool.clone(), "Invalid yaml, finishing task".to_string()));
-    let args = serde_json::json!({"message": response});
-    let assistant_content = response;
-    if !assistant_content.trim().is_empty() {
-        history.push(ChatCompletionRequestMessage::Assistant(
-            ChatCompletionRequestAssistantMessage {
-                content: Some(
-                    ChatCompletionRequestAssistantMessageContent::Text(
-                        assistant_content.to_string(),
-                    ),
-                ),
-                name: None,
-                tool_calls: None,
-                ..Default::default()
-            },
-        ));
-    }
-    let result =
-        execute_tool_call(tool.clone(), args.clone(), verbose, yolo).await?;
-    let prefixed_result = format!(
-        "[{} message: 'Invalid yaml, finishing task']\n{}",
-        tool, result
-    );
-    history.push(ChatCompletionRequestMessage::User(
-        ChatCompletionRequestUserMessage {
-            content: ChatCompletionRequestUserMessageContent::Text(
-                prefixed_result,
-            ),
-            name: None,
-        },
-    ));
-    Ok(())
 }
 
 pub async fn loop_tools_until_finish(
@@ -243,7 +207,7 @@ pub async fn loop_tools_until_finish(
     }
     let mut tool_calls: Vec<(String, String)> = Vec::new();
     loop {
-        let response = choose_tool(
+        let mapping = choose_tool(
             history.clone(),
             model,
             retries,
@@ -252,42 +216,20 @@ pub async fn loop_tools_until_finish(
             verbose,
         )
         .await?;
-        let yaml_value: YamlValue = match serde_yaml::from_str(&response) {
-            Ok(v) => v,
-            Err(_) => {
-                handle_yaml_parse_error(
-                    &response,
-                    &mut tool_calls,
-                    &mut history,
-                    verbose,
-                    yolo,
-                    tool_call_details,
-                )
-                .await?;
-                break;
-            }
-        };
-        let mut tool = "".to_string();
-        let mut args_parsed = serde_json::to_value({})?;
-        let mut parse_success = false;
-
-        if let YamlValue::Mapping(mapping) = yaml_value {
-            if let Some((key, value)) = mapping.into_iter().next() {
-                if let YamlValue::String(tool_name) = key {
-                    tool = tool_name;
-                    args_parsed = serde_json::to_value(value)?;
-                    parse_success = true;
-                }
-            }
-        }
-
-        if !parse_success  {
-            tool = "finish_task".to_string(); 
-            args_parsed = serde_json::json!({"message": response.clone()});
-        }
+        let yaml_value = YamlValue::Mapping(mapping.clone());
+        let map = &mapping;
+        let (key, value) = map.iter().next().expect("Mapping should have at least one entry");
+        let tool_name = key.as_str().expect("Key should be a string");
+        let tool = tool_name.to_string();
+        let args_parsed = value.clone();
 
         let primary_value = if tool == "finish_task" {
-            args_parsed["message"].as_str().unwrap_or("").to_string()
+            args_parsed
+                .as_mapping()
+                .and_then(|m| m.get("message"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string()
         } else {
             let key = match tool.as_str() {
                 "execute_shell_command" => "command",
@@ -298,7 +240,12 @@ pub async fn loop_tools_until_finish(
                 "describe_to_user" => "description",
                 _ => "",
             };
-            args_parsed[key].as_str().unwrap_or("").to_string()
+            args_parsed
+                .as_mapping()
+                .and_then(|m| m.get(key))
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string()
         };
 
         tool_calls.push((tool.clone(), primary_value));
@@ -310,7 +257,8 @@ pub async fn loop_tools_until_finish(
             );
         }
 
-        let assistant_content = response;
+        let assistant_content =
+            serde_yaml::to_string(&yaml_value).unwrap_or_default();
         if !assistant_content.trim().is_empty() {
             history.push(ChatCompletionRequestMessage::Assistant(
                 ChatCompletionRequestAssistantMessage {
@@ -326,13 +274,18 @@ pub async fn loop_tools_until_finish(
             ));
         }
 
-        let args_str = if let serde_json::Value::Object(obj) = &args_parsed {
-            obj.iter()
+        let args_str = if let YamlValue::Mapping(map) = &args_parsed {
+            map.iter()
                 .map(|(k, v)| {
-                    if let serde_json::Value::String(s) = v {
-                        format!("{}: '{}'", k, s)
+                    let key_str = k.as_str().unwrap_or("key");
+                    if let YamlValue::String(s) = v {
+                        format!("{}: '{}'", key_str, s)
                     } else {
-                        format!("{}: {}", k, v.to_string())
+                        format!(
+                            "{}: {}",
+                            key_str,
+                            serde_yaml::to_string(v).unwrap().trim()
+                        )
                     }
                 })
                 .collect::<Vec<_>>()
