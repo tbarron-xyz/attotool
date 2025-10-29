@@ -249,7 +249,7 @@ pub fn get_tools() -> Vec<Tool> {
         Tool::ExecuteShellCommand,
         Tool::ReadFile,
         Tool::WriteFile,
-        Tool::ListFiles,
+        // Tool::ListFiles,
         Tool::FinishTask,
         Tool::AskForClarification,
         Tool::DescribeToUser,
