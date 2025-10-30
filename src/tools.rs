@@ -38,12 +38,12 @@ impl Tool {
                 "Executes a command with arguments on the bash shell - includes common tools like curl, mkdir. Using 'sed' is not allowed unless the user explicitly requests it"
             }
             Tool::ReadFile => "Reads a file on the local filesystem",
-            Tool::WriteFile => "Writes a file on the local filesystem",
+            Tool::WriteFile => "Writes a file on the local filesystem. write_file should not be used to replace only small parts of a file; for that, use write_lines",
             Tool::ReadLines => {
                 "Reads specific lines from a file between start_line and end_line"
             }
             Tool::WriteLines => {
-                "Writes content to specific lines in a file between start_line and end_line"
+                "Writes content to specific lines in a file between start_line and end_line. write_lines content argument must be on a single line, double-quoted, with newlines escaped with \\n. write_lines should be preferred over write_file when a small, targeted change is desired"
             }
             Tool::ListFiles => {
                 "Lists the contents (files and directories) of a given directory"
@@ -352,7 +352,7 @@ pub fn get_tools(yolo: bool, plan: bool) -> Vec<Tool> {
     let mut tools = vec![
         Tool::ExecuteShellCommand,
         Tool::ReadFile,
-        // Tool::WriteFile,
+        Tool::WriteFile,
         Tool::ReadLines,
         Tool::WriteLines,
         // Tool::ListFiles,
