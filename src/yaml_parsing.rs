@@ -1,10 +1,34 @@
+use serde::Deserialize;
 use serde_yaml::{Mapping, Value as YamlValue};
 use std::env;
 use std::fs;
 use std::path::Path;
 
+#[derive(Deserialize)]
+pub struct Config {
+    model: Option<String>,
+}
+
 pub static DEFAULT_SYSTEM_PROMPT_YAML: &str =
     include_str!("../system_prompt.yaml");
+
+pub fn get_default_model() -> String {
+    let config_path = format!(
+        "{}/.config/attotool/config.yaml",
+        env::var("HOME").expect("HOME not set")
+    );
+    let mut model = "mistralai/mistral-small-3.1-24b-instruct".to_string();
+    if Path::new(&config_path).exists() {
+        if let Ok(content) = fs::read_to_string(&config_path) {
+            if let Ok(config) = serde_yaml::from_str::<Config>(&content) {
+                if let Some(m) = config.model {
+                    model = m;
+                }
+            }
+        }
+    }
+    model
+}
 
 pub fn merge_yaml(
     base: &serde_yaml::Value,

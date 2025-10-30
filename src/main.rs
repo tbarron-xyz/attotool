@@ -1,9 +1,5 @@
 use attotool::loop_tools_until_finish;
 use clap::Parser;
-use serde::Deserialize;
-use std::env;
-use std::fs;
-use std::path::Path;
 
 mod attotool;
 mod tools;
@@ -49,34 +45,13 @@ struct Args {
     plan: bool,
 }
 
-#[derive(Deserialize)]
-struct Config {
-    model: Option<String>,
-}
-
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
     let message =
         args.input.or(args.positional_input).unwrap_or("".to_string()).clone();
 
-    let config_path = format!(
-        "{}/.config/attotool/attotool.yaml",
-        env::var("HOME").expect("HOME not set")
-    );
-    let config_model = {
-        let mut cm = "mistralai/mistral-small-3.1-24b-instruct".to_string();
-        if Path::new(&config_path).exists() {
-            if let Ok(content) = fs::read_to_string(&config_path) {
-                if let Ok(config) = serde_yaml::from_str::<Config>(&content) {
-                    if let Some(m) = config.model {
-                        cm = m;
-                    }
-                }
-            }
-        }
-        cm
-    };
+    let config_model = yaml_parsing::get_default_model();
     let model = args.model.as_ref().unwrap_or(&config_model);
 
     loop_tools_until_finish(
