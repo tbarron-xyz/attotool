@@ -47,6 +47,7 @@ pub async fn choose_tool(
     base_url: &str,
     verbose: bool,
     yolo: bool,
+    disable_agents_md: bool,
 ) -> Result<Mapping, Box<dyn std::error::Error>> {
     let api_key =
         env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
@@ -61,6 +62,11 @@ pub async fn choose_tool(
         tools.iter().map(|t| t.format()).collect::<Vec<_>>().join("\n");
     let current_dir = std::env::current_dir()
         .unwrap_or_else(|_| std::path::PathBuf::from("unknown"));
+    let agents_md_preamble = if !disable_agents_md {
+        "\n\nAGENTS.md is an open format for guiding tool-calling agents, providing project-specific instructions like build steps, code style, and conventions to help AI agents work effectively on the codebase."
+    } else {
+        ""
+    };
 
     let system_message = ChatCompletionRequestMessage::System(ChatCompletionRequestSystemMessage {
         content: ChatCompletionRequestSystemMessageContent::Text(
@@ -74,7 +80,7 @@ You will be given a user message which defines a task, and your job is to choose
 
 If the task is finished, use the finish_task tool. If you need additional information, use ask_for_clarification
 
-The current working directory is {}
+The current working directory is {}{}
 
 Your available tools:
 
@@ -83,7 +89,7 @@ Your available tools:
 An example of appropriate response formatting:
 
 read_file:
-  path: '/some/file.txt'", current_dir.display(), available_tools_text).to_string()),
+  path: '/some/file.txt'", current_dir.display(), agents_md_preamble, available_tools_text).to_string()),
         name: None,
     });
 
@@ -216,6 +222,7 @@ pub async fn loop_tools_until_finish(
             base_url,
             verbose,
             yolo,
+            disable_agents_md,
         )
         .await?;
         let yaml_value = YamlValue::Mapping(mapping.clone());

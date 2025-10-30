@@ -60,7 +60,7 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls to interact
 1. Ensure you have Rust installed: https://rustup.rs/
 2. Clone this repository
 3. Build the project: `cargo build --release`
-4. Optionally, link the binary for global access: `ln -s target/release/attotool /usr/local/bin/attotool`
+4. Optionally, install the binary globally by linking it: `ln -s target/release/attotool /usr/local/bin/attotool`
 5. Set your OpenRouter (or OpenAI, to the same env var) API key: `export OPENROUTER_API_KEY=your_key_here`
 
 ## Usage
