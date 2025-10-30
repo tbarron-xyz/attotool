@@ -8,6 +8,8 @@ pub enum Tool {
     ExecuteShellCommand,
     ReadFile,
     WriteFile,
+    ReadLines,
+    WriteLines,
     ListFiles,
     FinishTask,
     AskForClarification,
@@ -20,6 +22,8 @@ impl Tool {
             Tool::ExecuteShellCommand => "execute_shell_command",
             Tool::ReadFile => "read_file",
             Tool::WriteFile => "write_file",
+            Tool::ReadLines => "read_lines",
+            Tool::WriteLines => "write_lines",
             Tool::ListFiles => "list_files",
             Tool::FinishTask => "finish_task",
             Tool::AskForClarification => "ask_for_clarification",
@@ -31,10 +35,16 @@ impl Tool {
         match self {
             Tool::ExecuteShellCommand => {
                 // not mentioning ls, cat for now
-                "Executes a command with arguments on the bash shell - includes common tools like curl, mkdir"
+                "Executes a command with arguments on the bash shell - includes common tools like curl, mkdir. Using 'sed' is not allowed unless the user explicitly requests it"
             }
             Tool::ReadFile => "Reads a file on the local filesystem",
             Tool::WriteFile => "Writes a file on the local filesystem",
+            Tool::ReadLines => {
+                "Reads specific lines from a file between start_line and end_line"
+            }
+            Tool::WriteLines => {
+                "Writes content to specific lines in a file between start_line and end_line"
+            }
             Tool::ListFiles => {
                 "Lists the contents (files and directories) of a given directory"
             }
@@ -59,6 +69,17 @@ impl Tool {
             Tool::ReadFile => vec![("path".to_string(), "string".to_string())],
             Tool::WriteFile => vec![
                 ("path".to_string(), "string".to_string()),
+                ("content".to_string(), "string".to_string()),
+            ],
+            Tool::ReadLines => vec![
+                ("path".to_string(), "string".to_string()),
+                ("start_line".to_string(), "integer".to_string()),
+                ("end_line".to_string(), "integer".to_string()),
+            ],
+            Tool::WriteLines => vec![
+                ("path".to_string(), "string".to_string()),
+                ("start_line".to_string(), "integer".to_string()),
+                ("end_line".to_string(), "integer".to_string()),
                 ("content".to_string(), "string".to_string()),
             ],
             Tool::ListFiles => vec![("path".to_string(), "string".to_string())],
@@ -86,6 +107,8 @@ impl Tool {
             }
             Tool::ReadFile => execute_read_file(args, verbose, yolo).await,
             Tool::WriteFile => execute_write_file(args, verbose, yolo).await,
+            Tool::ReadLines => execute_read_lines(args, verbose, yolo).await,
+            Tool::WriteLines => execute_write_lines(args, verbose, yolo).await,
             Tool::ListFiles => execute_list_files(args, verbose, yolo).await,
             Tool::FinishTask => execute_finish_task(args, verbose, yolo).await,
             Tool::AskForClarification => {
@@ -196,6 +219,77 @@ async fn execute_write_file(
     }
 }
 
+async fn execute_read_lines(
+    args: Value,
+    _verbose: bool,
+    _yolo: bool,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let path = args["path"].as_str().unwrap_or("");
+    let start_line = args["start_line"].as_u64().unwrap_or(1) as usize;
+    let end_line = args["end_line"].as_u64().unwrap_or(1) as usize;
+    if start_line == 0 || end_line == 0 || start_line > end_line {
+        return Ok("Invalid line range".to_string());
+    }
+    match fs::read_to_string(path) {
+        Ok(content) => {
+            let lines: Vec<&str> = content.lines().collect();
+            if start_line > lines.len() {
+                return Ok("Start line out of bounds".to_string());
+            }
+            let end = std::cmp::min(end_line, lines.len());
+            let selected = &lines[start_line - 1..end];
+            Ok(selected.join("\n"))
+        }
+        Err(e) => Ok(format!("Error reading file: {}", e)),
+    }
+}
+
+async fn execute_write_lines(
+    args: Value,
+    verbose: bool,
+    yolo: bool,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let path = args["path"].as_str().unwrap_or("");
+    let start_line = args["start_line"].as_u64().unwrap_or(1) as usize;
+    let end_line = args["end_line"].as_u64().unwrap_or(1) as usize;
+    let content = args["content"].as_str().unwrap_or("");
+    if start_line == 0 || end_line == 0 || start_line > end_line {
+        return Ok("Invalid line range".to_string());
+    }
+    if !yolo
+        && !prompt_approval(
+            &format!(
+                "Do you want to write lines {} to {} in file `{}` with content `{}`? (Y/n): ",
+                start_line, end_line, path, content
+            ),
+            verbose,
+        )
+    {
+        return Ok("File write request declined by the user.".to_string());
+    }
+    match fs::read_to_string(path) {
+        Ok(existing) => {
+            let mut lines: Vec<String> =
+                existing.lines().map(|s| s.to_string()).collect();
+            if start_line > lines.len() + 1 {
+                return Ok("Start line out of bounds".to_string());
+            }
+            let new_lines: Vec<String> =
+                content.lines().map(|s| s.to_string()).collect();
+            lines.splice(
+                start_line - 1..std::cmp::min(end_line, lines.len()),
+                new_lines,
+            );
+            let new_content = lines.join("\n");
+            match fs::write(path, new_content) {
+                Ok(_) => Ok("Lines written successfully".to_string()),
+                Err(e) => Ok(format!("Error writing file: {}", e)),
+            }
+        }
+        Err(e) => Ok(format!("Error reading file: {}", e)),
+    }
+}
+
 async fn execute_finish_task(
     args: Value,
     _verbose: bool,
@@ -258,13 +352,15 @@ pub fn get_tools(yolo: bool, plan: bool) -> Vec<Tool> {
     let mut tools = vec![
         Tool::ExecuteShellCommand,
         Tool::ReadFile,
-        Tool::WriteFile,
+        // Tool::WriteFile,
+        Tool::ReadLines,
+        Tool::WriteLines,
         // Tool::ListFiles,
         Tool::FinishTask,
         Tool::DescribeToUser,
     ];
     if plan {
-        tools.retain(|t| !matches!(t, Tool::WriteFile));
+        tools.retain(|t| !matches!(t, Tool::WriteFile | Tool::WriteLines));
     }
     if !yolo {
         tools.push(Tool::AskForClarification);

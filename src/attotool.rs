@@ -73,7 +73,14 @@ Your available tools:
 An example of appropriate response formatting:
 
 read_file:
-  path: '/some/file.txt'", current_dir.display(), agents_md_preamble, plan_preamble, available_tools_text).to_string()),
+  path: '/some/file.txt'
+
+Another example, with two arguments having the same string value, using a pipe string with explicit block indentation indicator:
+
+my_key:
+  arg1: 'the_same_value'
+  arg2: |1
+   the_same_value", current_dir.display(), agents_md_preamble, plan_preamble, available_tools_text).to_string()),
         name: None,
     });
 
@@ -212,6 +219,8 @@ pub async fn loop_tools_until_finish(
             "execute_shell_command" => "command",
             "read_file" => "path",
             "write_file" => "path",
+            "read_lines" => "path",
+            "write_lines" => "path",
             "list_files" => "path",
             "ask_for_clarification" => "",
             "describe_to_user" => "",
@@ -287,8 +296,8 @@ pub async fn loop_tools_until_finish(
                 if tool_call_details {
                     println!("Tool call failed: {}", failure_message);
                     println!("Error: {}", e);
-                    println!("---");
                 }
+                println!("--- [{} {}]", tool, primary_value);
                 history.push(ChatCompletionRequestMessage::User(
                     ChatCompletionRequestUserMessage {
                         content: ChatCompletionRequestUserMessageContent::Text(
@@ -308,8 +317,8 @@ pub async fn loop_tools_until_finish(
                 "Tool call result: {}",
                 prefixed_result.chars().take(500).collect::<String>()
             );
-            println!("---");
         }
+        println!("--- [{} {}]", tool, primary_value);
         history.push(ChatCompletionRequestMessage::User(
             ChatCompletionRequestUserMessage {
                 content: ChatCompletionRequestUserMessageContent::Text(
