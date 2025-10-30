@@ -119,7 +119,7 @@ pub fn format_system_prompt(
     )
 }
 
-pub fn parse_and_normalize_yaml(
+pub fn parse_first_tool_from_tool_response_yaml(
     input: &str,
     verbose: bool,
 ) -> Result<Mapping, Box<dyn std::error::Error>> {
@@ -150,14 +150,16 @@ pub fn parse_tool_response_yaml(
     verbose: bool,
 ) -> Result<Mapping, Box<dyn std::error::Error>> {
     // First, try parsing the entire trimmed response as YAML
-    if let Ok(normalized) = parse_and_normalize_yaml(trimmed, verbose) {
+    if let Ok(normalized) =
+        parse_first_tool_from_tool_response_yaml(trimmed, verbose)
+    {
         return Ok(normalized);
     }
-    // If parsing the whole failed, try splitting by \n\n and parse the first part
+    // If parsing the whole failed, try splitting by \n\n and parsing the first part
     let yaml_candidate = if let Some(pos) = trimmed.find("\n\n") {
         &trimmed[..pos]
     } else {
         trimmed
     };
-    parse_and_normalize_yaml(yaml_candidate, verbose)
+    parse_first_tool_from_tool_response_yaml(yaml_candidate, verbose)
 }

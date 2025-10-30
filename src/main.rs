@@ -3,7 +3,7 @@ use clap::Parser;
 
 mod attotool;
 mod tools;
-mod yaml_parsing;
+mod yaml_utilities;
 
 #[derive(Parser)]
 #[command(name = "attotool")]
@@ -51,7 +51,7 @@ async fn main() {
     let message =
         args.input.or(args.positional_input).unwrap_or("".to_string()).clone();
 
-    let config_model = yaml_parsing::get_default_model();
+    let config_model = yaml_utilities::get_default_model();
     let model = args.model.as_ref().unwrap_or(&config_model);
 
     loop_tools_until_finish(

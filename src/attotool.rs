@@ -13,7 +13,7 @@ use serde_yaml::{Mapping, Value as YamlValue};
 use std::env;
 use std::fs;
 
-use crate::yaml_parsing::parse_tool_response_yaml;
+use crate::yaml_utilities::parse_tool_response_yaml;
 
 pub async fn choose_tool(
     history: Vec<ChatCompletionRequestMessage>,
@@ -39,7 +39,7 @@ pub async fn choose_tool(
         tools.iter().map(|t| t.format()).collect::<Vec<_>>().join("\n");
     let current_dir = std::env::current_dir()
         .unwrap_or_else(|_| std::path::PathBuf::from("unknown"));
-    let system_content = crate::yaml_parsing::format_system_prompt(
+    let system_content = crate::yaml_utilities::format_system_prompt(
         &current_dir,
         disable_agents_md,
         plan_mode,
