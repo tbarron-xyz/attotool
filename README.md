@@ -51,6 +51,7 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls to interact
 - **Approval Prompts**: User confirmation for potentially destructive operations
 - **Conversation History**: Saves interaction history to `history.yaml`
 - **AGENTS.md Support**: Automatically loads ./AGENTS.md as the first user message
+- **attotool.yaml Configuration**: Load model setting from ~/.config/attotool.yaml
 - **Rust Implementation**: Lightweight, fast, and memory-safe
 - **Evals in GH Actions**: Automated workflows for evaluating agent performance across multiple language models on standardized tasks
 
