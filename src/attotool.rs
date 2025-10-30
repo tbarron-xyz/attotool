@@ -13,31 +13,7 @@ use serde_yaml::{Mapping, Value as YamlValue};
 use std::env;
 use std::fs;
 
-fn parse_and_normalize_yaml(
-    input: &str,
-    verbose: bool,
-) -> Result<Mapping, Box<dyn std::error::Error>> {
-    if let Ok(value) = serde_yaml::from_str::<YamlValue>(input) {
-        if let YamlValue::Mapping(mapping) = value {
-            if mapping.len() > 1 {
-                if verbose {
-                    println!(
-                        "Removed {} additional tool(s) from multi-tool response",
-                        mapping.len() - 1
-                    );
-                }
-                let mut new_mapping = Mapping::new();
-                if let Some((key, val)) = mapping.iter().next() {
-                    new_mapping.insert(key.clone(), val.clone());
-                }
-                return Ok(new_mapping);
-            } else {
-                return Ok(mapping);
-            }
-        }
-    }
-    Err("Invalid YAML".into())
-}
+use crate::yaml_parsing::parse_tool_response_yaml;
 
 pub async fn choose_tool(
     history: Vec<ChatCompletionRequestMessage>,
@@ -121,19 +97,7 @@ read_file:
             );
         }
         if !trimmed.is_empty() {
-            // First, try parsing the entire trimmed response as YAML
-            if let Ok(normalized) = parse_and_normalize_yaml(trimmed, verbose) {
-                return Ok(normalized);
-            }
-            // If parsing the whole failed, try splitting by \n\n and parse the first part
-            let yaml_candidate = if let Some(pos) = trimmed.find("\n\n") {
-                &trimmed[..pos]
-            } else {
-                trimmed
-            };
-            if let Ok(normalized) =
-                parse_and_normalize_yaml(yaml_candidate, verbose)
-            {
+            if let Ok(normalized) = parse_tool_response_yaml(trimmed, verbose) {
                 return Ok(normalized);
             }
             // Fallback: return a mapping for finish_task

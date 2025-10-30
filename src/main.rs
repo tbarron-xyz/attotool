@@ -7,6 +7,7 @@ use std::path::Path;
 
 mod attotool;
 mod tools;
+mod yaml_parsing;
 
 #[derive(Parser)]
 #[command(name = "attotool")]
