@@ -49,7 +49,8 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls to interact
 - **Approval Prompts**: User confirmation for potentially destructive operations (`write_file`, `execute_shell_command`)
 - **AGENTS.md Support**: Automatically loads ./AGENTS.md as the first user message
 - **Conversation History**: Saves interaction history to `history.yaml`
-- **attotool.yaml Configuration**: Load model setting from ~/.config/attotool.yaml
+- **attotool.yaml Configuration**: Load model setting from `~/.config/attotool/attotool.yaml`
+- **System Prompt Customization**: Load user-defined system prompt section overrides from `~/.config/attotool/system_prompt.yaml`, allowing customization of agent behavior while preserving defaults.
 - **Evals in GH Actions**: Automated workflows for evaluating agent performance across multiple language models on standardized tasks
 
 ## Installation

@@ -24,7 +24,7 @@ pub async fn choose_tool(
     verbose: bool,
     yolo: bool,
     disable_agents_md: bool,
-    plan: bool,
+    plan_mode: bool,
 ) -> Result<Mapping, Box<dyn std::error::Error>> {
     let api_key =
         env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
@@ -34,55 +34,25 @@ pub async fn choose_tool(
             .with_api_key(api_key),
     );
 
-    let tools = crate::tools::get_tools(yolo, plan);
+    let tools = crate::tools::get_tools(yolo, plan_mode);
     let available_tools_text =
         tools.iter().map(|t| t.format()).collect::<Vec<_>>().join("\n");
     let current_dir = std::env::current_dir()
         .unwrap_or_else(|_| std::path::PathBuf::from("unknown"));
-    let agents_md_preamble = if !disable_agents_md
-        && fs::metadata("AGENTS.md").is_ok()
-    {
-        "\n\nAGENTS.md is an open format for guiding tool-calling agents, providing project-specific instructions like build steps, code style, and conventions to help AI agents work effectively on the codebase."
-    } else {
-        ""
-    };
-    let plan_preamble = if plan {
-        "\n\nPLAN MODE ENABLED: You are in read-only phase. All modifications are forbidden, including through execute_shell_command. You may only observe, analyze, and plan."
-    } else {
-        ""
-    };
-
-    let system_message = ChatCompletionRequestMessage::System(ChatCompletionRequestSystemMessage {
-        content: ChatCompletionRequestSystemMessageContent::Text(
-            format!("You are a tool calling agent who responds with a single-item YAML dictionary. You ONLY respond in tool calls, one per message, with nothing before or after the YAML. Remember to format your strings as valid yaml (either escaping newlines or using pipe strings). Respond with the tool name and its arguments in the format:
-
-tool_name:
-  arg1: 'value1'
-  arg2: value2
-
-You will be given a user message which defines a task, and your job is to choose which tool would be most appropriate to use to accomplish or make progress on the task, and provide the necessary arguments for that tool. The tool call will then be executed by the user and the result returned. You will then choose another tool to continue the task.
-
-If the task is finished, use the finish_task tool. If you need additional information, use ask_for_clarification
-
-The current working directory is {}{}{}
-
-Your available tools:
-
-{}
-
-An example of appropriate response formatting:
-
-read_file:
-  path: '/some/file.txt'
-
-Another example, with two arguments having the same string value, using a pipe string with explicit block indentation indicator:
-
-my_key:
-  arg1: 'the_same_value'
-  arg2: |1
-   the_same_value", current_dir.display(), agents_md_preamble, plan_preamble, available_tools_text).to_string()),
-        name: None,
-    });
+    let system_content = crate::yaml_parsing::format_system_prompt(
+        &current_dir,
+        disable_agents_md,
+        plan_mode,
+        &available_tools_text,
+    );
+    let system_message = ChatCompletionRequestMessage::System(
+        ChatCompletionRequestSystemMessage {
+            content: ChatCompletionRequestSystemMessageContent::Text(
+                system_content,
+            ),
+            name: None,
+        },
+    );
 
     let mut messages = vec![system_message];
     messages.extend(history);
@@ -135,9 +105,9 @@ pub async fn execute_tool_call(
     args: YamlValue,
     verbose: bool,
     yolo: bool,
-    plan: bool,
+    plan_mode: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    let tools = crate::tools::get_tools(yolo, plan);
+    let tools = crate::tools::get_tools(yolo, plan_mode);
     let tool = tools
         .into_iter()
         .find(|t| t.name() == tool_name)
@@ -157,7 +127,7 @@ pub async fn loop_tools_until_finish(
     disable_agents_md: bool,
     yolo: bool,
     continue_task: bool,
-    plan: bool,
+    plan_mode: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut history = Vec::new();
     if continue_task {
@@ -204,7 +174,7 @@ pub async fn loop_tools_until_finish(
             verbose,
             yolo,
             disable_agents_md,
-            plan,
+            plan_mode,
         )
         .await?;
         let yaml_value = YamlValue::Mapping(mapping.clone());
@@ -285,7 +255,7 @@ pub async fn loop_tools_until_finish(
             args_parsed.clone(),
             verbose,
             yolo,
-            plan,
+            plan_mode,
         )
         .await
         {

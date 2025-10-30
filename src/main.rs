@@ -61,7 +61,7 @@ async fn main() {
         args.input.or(args.positional_input).unwrap_or("".to_string()).clone();
 
     let config_path = format!(
-        "{}/.config/attotool.yaml",
+        "{}/.config/attotool/attotool.yaml",
         env::var("HOME").expect("HOME not set")
     );
     let config_model = {

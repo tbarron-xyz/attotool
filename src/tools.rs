@@ -38,7 +38,9 @@ impl Tool {
                 "Executes a command with arguments on the bash shell - includes common tools like curl, mkdir. Using 'sed' is not allowed unless the user explicitly requests it"
             }
             Tool::ReadFile => "Reads a file on the local filesystem",
-            Tool::WriteFile => "Writes a file on the local filesystem. write_file should not be used to replace only small parts of a file; for that, use write_lines",
+            Tool::WriteFile => {
+                "Writes a file on the local filesystem. write_file should not be used to replace only small parts of a file; for that, use write_lines"
+            }
             Tool::ReadLines => {
                 "Reads specific lines from a file between start_line and end_line"
             }
@@ -348,7 +350,7 @@ async fn execute_describe_to_user(
     Ok(format!("Description: {}", description))
 }
 
-pub fn get_tools(yolo: bool, plan: bool) -> Vec<Tool> {
+pub fn get_tools(yolo: bool, plan_mode: bool) -> Vec<Tool> {
     let mut tools = vec![
         Tool::ExecuteShellCommand,
         Tool::ReadFile,
@@ -359,7 +361,7 @@ pub fn get_tools(yolo: bool, plan: bool) -> Vec<Tool> {
         Tool::FinishTask,
         Tool::DescribeToUser,
     ];
-    if plan {
+    if plan_mode {
         tools.retain(|t| !matches!(t, Tool::WriteFile | Tool::WriteLines));
     }
     if !yolo {
