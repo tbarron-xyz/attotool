@@ -45,6 +45,8 @@ struct Args {
         help = "Reads the existing history.yaml and continues the conversation with a new user message"
     )]
     r#continue: bool,
+    #[arg(long, short = 'p')]
+    plan: bool,
 }
 
 #[derive(Deserialize)]
@@ -89,6 +91,7 @@ async fn main() {
         args.disable_agents_md,
         args.yolo,
         args.r#continue,
+        args.plan,
     )
     .await
     .unwrap();

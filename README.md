@@ -91,7 +91,8 @@ attotool --continue "your follow-up task here"
 - `--tool-call-details`: Show detailed tool call results and execution output
 - `--disable-agents-md`: Disable automatic loading of AGENTS.md (default: false)
 - `--yolo`: 🚩 Enable YOLO mode (skips approval prompts for destructive operations and removes ask_for_clarification tool)
-- `--continue`: Reads the existing history.yaml and continues the conversation with a new user message
+- `--continue` / `-c`: Reads the existing history.yaml and continues the conversation with a new user message
+- `--plan` / `-p`: Enable plan mode (read-only phase, modifications discouraged)
 
 ## Recommended Models
 

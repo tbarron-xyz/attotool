@@ -24,6 +24,7 @@ pub async fn choose_tool(
     verbose: bool,
     yolo: bool,
     disable_agents_md: bool,
+    plan: bool,
 ) -> Result<Mapping, Box<dyn std::error::Error>> {
     let api_key =
         env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
@@ -33,7 +34,7 @@ pub async fn choose_tool(
             .with_api_key(api_key),
     );
 
-    let tools = crate::tools::get_tools(yolo);
+    let tools = crate::tools::get_tools(yolo, plan);
     let available_tools_text =
         tools.iter().map(|t| t.format()).collect::<Vec<_>>().join("\n");
     let current_dir = std::env::current_dir()
@@ -45,6 +46,11 @@ pub async fn choose_tool(
     } else {
         ""
     };
+    let plan_preamble = if plan {
+        "\n\nPLAN MODE ENABLED: You are in read-only phase. All modifications are forbidden, including through execute_shell_command. You may only observe, analyze, and plan."
+    } else {
+        ""
+    };
 
     let system_message = ChatCompletionRequestMessage::System(ChatCompletionRequestSystemMessage {
         content: ChatCompletionRequestSystemMessageContent::Text(
@@ -53,12 +59,12 @@ pub async fn choose_tool(
 tool_name:
   arg1: 'value1'
   arg2: value2
-        
+
 You will be given a user message which defines a task, and your job is to choose which tool would be most appropriate to use to accomplish or make progress on the task, and provide the necessary arguments for that tool. The tool call will then be executed by the user and the result returned. You will then choose another tool to continue the task.
 
 If the task is finished, use the finish_task tool. If you need additional information, use ask_for_clarification
 
-The current working directory is {}{}
+The current working directory is {}{}{}
 
 Your available tools:
 
@@ -67,7 +73,7 @@ Your available tools:
 An example of appropriate response formatting:
 
 read_file:
-  path: '/some/file.txt'", current_dir.display(), agents_md_preamble, available_tools_text).to_string()),
+  path: '/some/file.txt'", current_dir.display(), agents_md_preamble, plan_preamble, available_tools_text).to_string()),
         name: None,
     });
 
@@ -122,8 +128,9 @@ pub async fn execute_tool_call(
     args: YamlValue,
     verbose: bool,
     yolo: bool,
+    plan: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    let tools = crate::tools::get_tools(yolo);
+    let tools = crate::tools::get_tools(yolo, plan);
     let tool = tools
         .into_iter()
         .find(|t| t.name() == tool_name)
@@ -143,6 +150,7 @@ pub async fn loop_tools_until_finish(
     disable_agents_md: bool,
     yolo: bool,
     continue_task: bool,
+    plan: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut history = Vec::new();
     if continue_task {
@@ -189,6 +197,7 @@ pub async fn loop_tools_until_finish(
             verbose,
             yolo,
             disable_agents_md,
+            plan,
         )
         .await?;
         let yaml_value = YamlValue::Mapping(mapping.clone());
@@ -267,6 +276,7 @@ pub async fn loop_tools_until_finish(
             args_parsed.clone(),
             verbose,
             yolo,
+            plan,
         )
         .await
         {
