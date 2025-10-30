@@ -45,14 +45,11 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls to interact
 
 ## Features
 
-- **YAML Tool Calling**: All tool interactions are formatted as simple YAML dictionaries
-- **Built-in Tools**: Supports shell commands, file operations, user interaction, and task management
-- **Optional Tool Call Limit**: Control the maximum number of tool calls (0 for infinite loop, 1 for single call, etc.)
-- **Approval Prompts**: User confirmation for potentially destructive operations
-- **Conversation History**: Saves interaction history to `history.yaml`
+- **Plan Mode**: Enable read-only phase with `--plan` / `-p` flag, encouraging analysis and planning and forbidding all modifications
+- **Approval Prompts**: User confirmation for potentially destructive operations (`write_file`, `execute_shell_command`)
 - **AGENTS.md Support**: Automatically loads ./AGENTS.md as the first user message
+- **Conversation History**: Saves interaction history to `history.yaml`
 - **attotool.yaml Configuration**: Load model setting from ~/.config/attotool.yaml
-- **Rust Implementation**: Lightweight, fast, and memory-safe
 - **Evals in GH Actions**: Automated workflows for evaluating agent performance across multiple language models on standardized tasks
 
 ## Installation
@@ -87,7 +84,7 @@ attotool --continue "your follow-up task here"
 - `--input`: Task description (can also be provided as the first positional argument)
 - `--max-tool-calls`: Maximum number of tool calls (default: 0 for infinite)
 - `--retries`: Number of retries for API calls (default: 3)
-- `--verbose`: Enable detailed output including tool calls and API responses
+- `--verbose`: Enable detailed output including raw API responses
 - `--tool-call-details`: Show detailed tool call results and execution output
 - `--disable-agents-md`: Disable automatic loading of AGENTS.md (default: false)
 - `--yolo`: 🚩 Enable YOLO mode (skips approval prompts for destructive operations and removes ask_for_clarification tool)
