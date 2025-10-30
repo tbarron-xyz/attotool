@@ -235,32 +235,24 @@ pub async fn loop_tools_until_finish(
         let tool = tool_name.to_string();
         let args_parsed = value.clone();
 
-        let primary_value = if tool == "finish_task" {
-            args_parsed
-                .as_mapping()
-                .and_then(|m| m.get("message"))
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string()
-        } else {
-            let key = match tool.as_str() {
-                "execute_shell_command" => "command",
-                "read_file" => "path",
-                "write_file" => "path",
-                "list_files" => "path",
-                "ask_for_clarification" => "question",
-                "describe_to_user" => "description",
-                _ => "",
-            };
-            args_parsed
-                .as_mapping()
-                .and_then(|m| m.get(key))
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string()
+        let key = match tool.as_str() {
+            "execute_shell_command" => "command",
+            "read_file" => "path",
+            "write_file" => "path",
+            "list_files" => "path",
+            "ask_for_clarification" => "",
+            "describe_to_user" => "",
+            "finish_task" => "",
+            _ => "",
         };
+        let primary_value = args_parsed
+            .as_mapping()
+            .and_then(|m| m.get(key))
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
 
-        tool_calls.push((tool.clone(), primary_value));
+        tool_calls.push((tool.clone(), primary_value.clone()));
         if verbose {
             println!(
                 "Tool: {}, Args: {}",
@@ -335,7 +327,8 @@ pub async fn loop_tools_until_finish(
             }
         };
 
-        let prefixed_result = format!("[{} {}]\n{}", tool, args_str, result);
+        let prefixed_result =
+            format!("[{} {}]\n{}", tool, primary_value, result);
         if tool_call_details {
             println!(
                 "Tool call result: {}",
