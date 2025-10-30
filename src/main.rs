@@ -39,6 +39,7 @@ struct Args {
     #[arg(long)]
     yolo: bool,
     #[arg(
+        short = 'c',
         long,
         help = "Reads the existing history.yaml and continues the conversation with a new user message"
     )]
