@@ -220,7 +220,8 @@ pub async fn loop_tools_until_finish(
         .await?;
         let yaml_value = YamlValue::Mapping(mapping.clone());
         let map = &mapping;
-        let (key, value) = map.iter().next().expect("Mapping should have at least one entry");
+        let (key, value) =
+            map.iter().next().expect("Mapping should have at least one entry");
         let tool_name = key.as_str().expect("Key should be a string");
         let tool = tool_name.to_string();
         let args_parsed = value.clone();

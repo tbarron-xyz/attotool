@@ -59,22 +59,23 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls to interact
 1. Ensure you have Rust installed: https://rustup.rs/
 2. Clone this repository
 3. Build the project: `cargo build --release`
-4. Set your OpenRouter (or OpenAI, to the same env var) API key: `export OPENROUTER_API_KEY=your_key_here`
+4. Optionally, link the binary for global access: `ln -s target/release/attotool /usr/local/bin/attotool`
+5. Set your OpenRouter (or OpenAI, to the same env var) API key: `export OPENROUTER_API_KEY=your_key_here`
 
 ## Usage
 
 ```bash
 # Infinite loop (default)
-cargo run -- --input "read ./url.txt, fetch that url and describe the result as a markdown document"
+attotool "read ./url.txt, fetch that url and describe the result as a markdown document"
 
 # Single tool call
-cargo run -- --max-tool-calls 1 --input "curl the ubuntu homepage"
+attotool --max-tool-calls 1 "curl the ubuntu homepage"
 
 # Specify model and other options
-cargo run -- --model "openai/gpt-4" --max-tokens 4000 --input "your task here" --tool-call-details
+attotool --model "openai/gpt-4" --max-tokens 4000 "your task here" --tool-call-details
 
 # Continue a previous conversation
-cargo run -- --continue --input "your follow-up task here"
+attotool --continue "your follow-up task here"
 ```
 
 ### CLI Options
@@ -82,7 +83,7 @@ cargo run -- --continue --input "your follow-up task here"
 - `--model`: LLM model to use (default: mistralai/mistral-small-3.1-24b-instruct)
 - `--max-tokens`: Maximum tokens for response (default: 2000)
 - `--base-url`: API base URL (default: https://openrouter.ai/api/v1, use https://api.openai.com/v1 for OpenAI)
-- `--input`: Task description
+- `--input`: Task description (can also be provided as the first positional argument)
 - `--max-tool-calls`: Maximum number of tool calls (default: 0 for infinite)
 - `--retries`: Number of retries for API calls (default: 3)
 - `--verbose`: Enable detailed output including tool calls and API responses
