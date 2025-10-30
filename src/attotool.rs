@@ -62,7 +62,9 @@ pub async fn choose_tool(
         tools.iter().map(|t| t.format()).collect::<Vec<_>>().join("\n");
     let current_dir = std::env::current_dir()
         .unwrap_or_else(|_| std::path::PathBuf::from("unknown"));
-    let agents_md_preamble = if !disable_agents_md {
+    let agents_md_preamble = if !disable_agents_md
+        && fs::metadata("AGENTS.md").is_ok()
+    {
         "\n\nAGENTS.md is an open format for guiding tool-calling agents, providing project-specific instructions like build steps, code style, and conventions to help AI agents work effectively on the codebase."
     } else {
         ""
