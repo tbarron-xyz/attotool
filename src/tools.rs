@@ -145,6 +145,16 @@ fn prompt_approval(prompt: &str, _verbose: bool) -> bool {
     input == "y"
 }
 
+fn truncate_content(content: &str) -> String {
+    if content.len() <= 250 {
+        content.to_string()
+    } else {
+        let truncated = &content[..250];
+        let remaining = content.len() - 250;
+        format!("{}[... and {} more characters]", truncated, remaining)
+    }
+}
+
 async fn execute_shell_command(
     args: Value,
     verbose: bool,
@@ -204,11 +214,12 @@ async fn execute_write_file(
 ) -> Result<String, Box<dyn std::error::Error>> {
     let path = args["path"].as_str().unwrap_or("");
     let content = args["content"].as_str().unwrap_or("");
+    let truncated_content = truncate_content(content);
     if !yolo
         && !prompt_approval(
             &format!(
-                "Do you want to write to file `{}` contents `{}`? (Y/n): ",
-                path, content
+                "Do you want to write contents `{}` to file `{}`? (Y/n): ",
+                truncated_content, path
             ),
             verbose,
         )
@@ -258,11 +269,12 @@ async fn execute_write_lines(
     if start_line == 0 || end_line == 0 || start_line > end_line {
         return Ok("Invalid line range".to_string());
     }
+    let truncated_content = truncate_content(content);
     if !yolo
         && !prompt_approval(
             &format!(
-                "Do you want to write lines {} to {} in file `{}` with content `{}`? (Y/n): ",
-                start_line, end_line, path, content
+                "Do you want to write contents `{}` to lines {} to {} in file `{}`? (Y/n): ",
+                truncated_content, start_line, end_line, path
             ),
             verbose,
         )
