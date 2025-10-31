@@ -12,6 +12,7 @@ pub enum Tool {
     WriteLines,
     ListFiles,
     FinishTask,
+    FinishPlanning,
     AskForClarification,
     DescribeToUser,
 }
@@ -26,6 +27,7 @@ impl Tool {
             Tool::WriteLines => "write_lines",
             Tool::ListFiles => "list_files",
             Tool::FinishTask => "finish_task",
+            Tool::FinishPlanning => "finish_planning",
             Tool::AskForClarification => "ask_for_clarification",
             Tool::DescribeToUser => "describe_to_user",
         }
@@ -52,6 +54,9 @@ impl Tool {
             }
             Tool::FinishTask => {
                 "Marks the assigned task as completed, with a completion message"
+            }
+            Tool::FinishPlanning => {
+                "Marks the planning phase as completed, with a planning message"
             }
             Tool::AskForClarification => {
                 "Allows the assistant to ask the user for clarification on a point of interest"
@@ -88,6 +93,9 @@ impl Tool {
             Tool::FinishTask => {
                 vec![("message".to_string(), "string".to_string())]
             }
+            Tool::FinishPlanning => {
+                vec![("message".to_string(), "string".to_string())]
+            }
             Tool::AskForClarification => {
                 vec![("question".to_string(), "string".to_string())]
             }
@@ -113,6 +121,9 @@ impl Tool {
             Tool::WriteLines => execute_write_lines(args, verbose, yolo).await,
             Tool::ListFiles => execute_list_files(args, verbose, yolo).await,
             Tool::FinishTask => execute_finish_task(args, verbose, yolo).await,
+            Tool::FinishPlanning => {
+                execute_finish_planning(args, verbose, yolo).await
+            }
             Tool::AskForClarification => {
                 execute_ask_for_clarification(args, verbose, yolo).await
             }
@@ -314,6 +325,16 @@ async fn execute_finish_task(
     Ok(format!("Task completed: {}", message))
 }
 
+async fn execute_finish_planning(
+    args: Value,
+    _verbose: bool,
+    _yolo: bool,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let message = args["message"].as_str().unwrap_or("");
+    println!("{}", format!("Planning completed: {}", message));
+    Ok(format!("Planning completed: {}", message))
+}
+
 async fn execute_ask_for_clarification(
     args: Value,
     _verbose: bool,
@@ -363,6 +384,11 @@ async fn execute_describe_to_user(
 }
 
 pub fn get_tools(yolo: bool, plan_mode: bool) -> Vec<Tool> {
+    let finish_tool = if plan_mode {
+        Tool::FinishPlanning
+    } else {
+        Tool::FinishTask
+    };
     let mut tools = vec![
         Tool::ExecuteShellCommand,
         Tool::ReadFile,
@@ -370,7 +396,7 @@ pub fn get_tools(yolo: bool, plan_mode: bool) -> Vec<Tool> {
         Tool::ReadLines,
         Tool::WriteLines,
         // Tool::ListFiles,
-        Tool::FinishTask,
+        finish_tool,
         Tool::DescribeToUser,
     ];
     if plan_mode {

@@ -83,7 +83,12 @@ pub async fn choose_tool(
             if let Ok(normalized) = parse_tool_response_yaml(trimmed, verbose) {
                 return Ok(normalized);
             }
-            // Fallback: return a mapping for finish_task
+            // Fallback: return a mapping for finish tool
+            let finish_tool_name = if plan_mode {
+                "finish_planning"
+            } else {
+                "finish_task"
+            };
             let mut args = Mapping::new();
             args.insert(
                 YamlValue::String("message".to_string()),
@@ -91,7 +96,7 @@ pub async fn choose_tool(
             );
             let mut mapping = Mapping::new();
             mapping.insert(
-                YamlValue::String("finish_task".to_string()),
+                YamlValue::String(finish_tool_name.to_string()),
                 YamlValue::Mapping(args),
             );
             return Ok(mapping);
@@ -195,6 +200,7 @@ pub async fn loop_tools_until_finish(
             "ask_for_clarification" => "",
             "describe_to_user" => "",
             "finish_task" => "",
+            "finish_planning" => "",
             _ => "",
         };
         let primary_value = args_parsed
@@ -299,6 +305,7 @@ pub async fn loop_tools_until_finish(
         ));
 
         if tool == "finish_task"
+            || tool == "finish_planning"
             || (max_tool_calls != 0
                 && tool_calls.len() >= max_tool_calls as usize)
         {

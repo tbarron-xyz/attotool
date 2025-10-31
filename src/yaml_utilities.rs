@@ -54,7 +54,7 @@ pub fn format_system_prompt_from_yaml(
 ) -> String {
     let current_dir_formatted = yaml["current_dir"]
         .as_str()
-        .unwrap_or("")
+        .unwrap_or("{}")
         .replace("{}", &current_dir.display().to_string());
     let agents_md_formatted =
         if !disable_agents_md && fs::metadata("AGENTS.md").is_ok() {
@@ -67,16 +67,23 @@ pub fn format_system_prompt_from_yaml(
     } else {
         ""
     };
+    let instructions = yaml["task_instructions"].as_str().unwrap_or("");
+    let guidance = if plan_mode {
+        yaml["plan_guidance"].as_str().unwrap_or("")
+    } else {
+        yaml["task_guidance"].as_str().unwrap_or("")
+    };
+    let task_formatted = format!("{}\n\n{}", instructions, guidance);
     let system_content = format!(
         "{}\n\n{}\n\n{}{}{}\n\n{}\n\n{}",
-        yaml["role_and_format"].as_str().unwrap_or(""),
-        yaml["task"].as_str().unwrap_or(""),
+        yaml["yaml_tool_calling_agent_identity"].as_str().unwrap_or(""),
+        task_formatted,
         current_dir_formatted,
         agents_md_formatted,
         plan_formatted,
         yaml["tools"]
             .as_str()
-            .unwrap_or("")
+            .unwrap_or("{}")
             .replace("{}", available_tools_text),
         yaml["examples"].as_str().unwrap_or("").trim_start_matches('\n')
     );
