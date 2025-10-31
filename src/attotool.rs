@@ -1,125 +1,11 @@
-use async_openai::{
-    Client,
-    types::{
-        ChatCompletionRequestAssistantMessage,
-        ChatCompletionRequestAssistantMessageContent,
-        ChatCompletionRequestMessage, ChatCompletionRequestSystemMessage,
-        ChatCompletionRequestSystemMessageContent,
-        ChatCompletionRequestUserMessage,
-        ChatCompletionRequestUserMessageContent, CreateChatCompletionRequest,
-    },
+use async_openai::types::{
+    ChatCompletionRequestAssistantMessage,
+    ChatCompletionRequestAssistantMessageContent, ChatCompletionRequestMessage,
+    ChatCompletionRequestUserMessage, ChatCompletionRequestUserMessageContent,
 };
-use serde_yaml::{Mapping, Value as YamlValue};
-use std::env;
 use std::fs;
 
-use crate::yaml_utilities::parse_tool_response_yaml;
-
-pub async fn choose_tool(
-    history: Vec<ChatCompletionRequestMessage>,
-    model: &str,
-    retries: u32,
-    max_tokens: u32,
-    base_url: &str,
-    verbose: bool,
-    yolo: bool,
-    disable_agents_md: bool,
-    plan_mode: bool,
-) -> Result<Mapping, Box<dyn std::error::Error>> {
-    let api_key =
-        env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
-    let client = Client::with_config(
-        async_openai::config::OpenAIConfig::new()
-            .with_api_base(base_url)
-            .with_api_key(api_key),
-    );
-
-    let tools = crate::tools::get_tools(yolo, plan_mode);
-    let available_tools_text =
-        tools.iter().map(|t| t.format()).collect::<Vec<_>>().join("\n");
-    let current_dir = std::env::current_dir()
-        .unwrap_or_else(|_| std::path::PathBuf::from("unknown"));
-    let system_content = crate::yaml_utilities::format_system_prompt(
-        &current_dir,
-        disable_agents_md,
-        plan_mode,
-        &available_tools_text,
-        yolo,
-    );
-    let system_message = ChatCompletionRequestMessage::System(
-        ChatCompletionRequestSystemMessage {
-            content: ChatCompletionRequestSystemMessageContent::Text(
-                system_content,
-            ),
-            name: None,
-        },
-    );
-
-    let mut messages = vec![system_message];
-    messages.extend(history);
-
-    let request = CreateChatCompletionRequest {
-        model: model.to_string(),
-        messages,
-        max_completion_tokens: Some(max_tokens),
-        ..Default::default()
-    };
-
-    for attempt in 0..retries {
-        if verbose {
-            println!("Sending openai request");
-        }
-        let response = client.chat().create(request.clone()).await?;
-        let choice = response.choices.first().ok_or("No response")?;
-        let content = choice.message.content.as_ref().ok_or("No content")?;
-        let trimmed = content.trim();
-        if verbose {
-            println!(
-                "API Response Content (choose_tool, attempt {}):\n{}",
-                attempt + 1,
-                content
-            );
-        }
-        if !trimmed.is_empty() {
-            if let Ok(normalized) = parse_tool_response_yaml(trimmed, verbose) {
-                return Ok(normalized);
-            }
-            // Fallback: return a mapping for finish tool
-            let finish_tool_name = if plan_mode {
-                "finish_planning"
-            } else {
-                "finish_task"
-            };
-            let mut args = Mapping::new();
-            args.insert(
-                YamlValue::String("message".to_string()),
-                YamlValue::String(trimmed.to_string()),
-            );
-            let mut mapping = Mapping::new();
-            mapping.insert(
-                YamlValue::String(finish_tool_name.to_string()),
-                YamlValue::Mapping(args),
-            );
-            return Ok(mapping);
-        }
-    }
-    Err("Failed to get non-empty tool choice after retries".into())
-}
-
-pub async fn execute_tool_call(
-    tool_name: String,
-    args: YamlValue,
-    verbose: bool,
-    yolo: bool,
-    plan_mode: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
-    let tools = crate::tools::get_tools(yolo, plan_mode);
-    let tool = tools
-        .into_iter()
-        .find(|t| t.name() == tool_name)
-        .ok_or_else(|| format!("Unknown tool: {}", tool_name))?;
-    tool.execute(args, verbose, yolo).await
-}
+use crate::output::Output;
 
 pub async fn loop_tools_until_finish(
     message: String,
@@ -134,7 +20,11 @@ pub async fn loop_tools_until_finish(
     yolo: bool,
     continue_task: bool,
     plan_mode: bool,
-) -> Result<(), Box<dyn std::error::Error>> {
+    ui_mode: bool,
+    approval_override: Option<bool>,
+    output: &mut dyn Output,
+    tool_calls: &mut Vec<(String, String)>,
+) -> Result<(), crate::tool_handler::LoopError> {
     let mut history = Vec::new();
     if continue_task {
         let history_yaml = fs::read_to_string("history.yaml")
@@ -169,59 +59,20 @@ pub async fn loop_tools_until_finish(
             },
         ));
     }
-    let mut tool_calls: Vec<(String, String)> = Vec::new();
     loop {
-        let mapping = choose_tool(
-            history.clone(),
-            model,
-            retries,
-            max_tokens,
-            base_url,
-            verbose,
-            yolo,
-            disable_agents_md,
-            plan_mode,
-        )
-        .await?;
-        let yaml_value = YamlValue::Mapping(mapping.clone());
-        let map = &mapping;
-        let (key, value) =
-            map.iter().next().expect("Mapping should have at least one entry");
-        let tool_name = key.as_str().expect("Key should be a string");
-        let tool = tool_name.to_string();
-        let args_parsed = value.clone();
-
-        let key = match tool.as_str() {
-            "execute_shell_command" => "command",
-            "read_file" => "path",
-            "write_file" => "path",
-            "read_lines" => "path",
-            "write_lines" => "path",
-            "list_files" => "path",
-            "ask_for_clarification" => "",
-            "describe_to_user" => "",
-            "finish_task" => "",
-            "finish_planning" => "",
-            _ => "",
-        };
-        let primary_value = args_parsed
-            .as_mapping()
-            .and_then(|m| m.get(key))
-            .and_then(|v| v.as_str())
-            .unwrap_or("")
-            .to_string();
-
-        tool_calls.push((tool.clone(), primary_value.clone()));
-        if verbose {
-            println!(
-                "Tool: {}, Args: {}",
-                tool,
-                serde_yaml::to_string(&args_parsed)?
-            );
-        }
-
-        let assistant_content =
-            serde_yaml::to_string(&yaml_value).unwrap_or_default();
+        let (tool, args_parsed, primary_value, assistant_content) =
+            crate::tool_handler::handle_tool_selection(
+                &history,
+                model,
+                retries,
+                max_tokens,
+                base_url,
+                verbose,
+                yolo,
+                disable_agents_md,
+                plan_mode,
+            )
+            .await?;
         if !assistant_content.trim().is_empty() {
             history.push(ChatCompletionRequestMessage::Assistant(
                 ChatCompletionRequestAssistantMessage {
@@ -236,45 +87,47 @@ pub async fn loop_tools_until_finish(
                 },
             ));
         }
-
-        let args_str = if let YamlValue::Mapping(map) = &args_parsed {
-            map.iter()
-                .map(|(k, v)| {
-                    let key_str = k.as_str().unwrap_or("key");
-                    if let YamlValue::String(s) = v {
-                        format!("{}: '{}'", key_str, s)
-                    } else {
-                        format!(
-                            "{}: {}",
-                            key_str,
-                            serde_yaml::to_string(v).unwrap().trim()
-                        )
-                    }
-                })
-                .collect::<Vec<_>>()
-                .join(" ")
-        } else {
-            "".to_string()
-        };
-
-        let result = match execute_tool_call(
+        tool_calls.push((tool.clone(), primary_value.clone()));
+        let args_str = crate::tool_handler::compute_args_str(&args_parsed);
+        output.print_tool_call(&tool, &primary_value);
+        let result = crate::tool_handler::handle_tool_execution(
             tool.clone(),
-            args_parsed.clone(),
+            args_parsed,
             verbose,
             yolo,
             plan_mode,
+            ui_mode,
+            approval_override,
         )
-        .await
-        {
-            Ok(result) => result,
-            Err(e) => {
+        .await;
+        match result {
+            Ok(res) => {
+                output.print_result(&tool, &primary_value, &res);
+                let prefixed_result =
+                    format!("[{} {}]\n{}", tool, primary_value, res);
+                history.push(ChatCompletionRequestMessage::User(
+                    ChatCompletionRequestUserMessage {
+                        content: ChatCompletionRequestUserMessageContent::Text(
+                            prefixed_result,
+                        ),
+                        name: None,
+                    },
+                ));
+            }
+            Err(crate::tool_handler::LoopError::Prompt(prompt_type)) => {
+                return Err(crate::tool_handler::LoopError::Prompt(
+                    prompt_type,
+                ));
+            }
+            Err(crate::tool_handler::LoopError::Other(e)) => {
+                output.print_failure(
+                    &tool,
+                    &primary_value,
+                    &args_str,
+                    &e.to_string(),
+                );
                 let failure_message =
                     format!("[FAILURE {} {}]", tool, args_str);
-                if tool_call_details {
-                    println!("Tool call failed: {}", failure_message);
-                    println!("Error: {}", e);
-                }
-                println!("--- [{} {}]", tool, primary_value);
                 history.push(ChatCompletionRequestMessage::User(
                     ChatCompletionRequestUserMessage {
                         content: ChatCompletionRequestUserMessageContent::Text(
@@ -285,38 +138,17 @@ pub async fn loop_tools_until_finish(
                 ));
                 continue;
             }
-        };
-
-        let prefixed_result =
-            format!("[{} {}]\n{}", tool, primary_value, result);
-        if tool_call_details {
-            println!(
-                "Tool call result: {}",
-                prefixed_result.chars().take(500).collect::<String>()
-            );
         }
-        println!("--- [{} {}]", tool, primary_value);
-        history.push(ChatCompletionRequestMessage::User(
-            ChatCompletionRequestUserMessage {
-                content: ChatCompletionRequestUserMessageContent::Text(
-                    prefixed_result,
-                ),
-                name: None,
-            },
-        ));
-
-        if tool == "finish_task"
-            || tool == "finish_planning"
-            || (max_tool_calls != 0
-                && tool_calls.len() >= max_tool_calls as usize)
-        {
+        if crate::tool_handler::handle_finish_condition(
+            &tool,
+            tool_calls.len(),
+            max_tool_calls,
+            plan_mode,
+        ) {
             break;
         }
     }
-    println!("--- Task tool usage summary");
-    for (tool, arg) in &tool_calls {
-        println!("[{} {}]", tool, arg);
-    }
+    output.print_summary(&tool_calls);
     let yaml_content = serde_yaml::to_string(&history).unwrap();
     std::fs::write("./history.yaml", yaml_content).unwrap();
     Ok(())

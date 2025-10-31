@@ -3,6 +3,8 @@ use std::fs;
 use std::io::{self, Write};
 use std::process;
 
+use crate::tool_handler::{LoopError, PromptType};
+
 #[derive(Clone)]
 pub enum Tool {
     ExecuteShellCommand,
@@ -110,25 +112,109 @@ impl Tool {
         args: Value,
         verbose: bool,
         yolo: bool,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+        ui_mode: bool,
+        approval_override: Option<bool>,
+    ) -> Result<String, LoopError> {
         match self {
             Tool::ExecuteShellCommand => {
-                execute_shell_command(args, verbose, yolo).await
+                execute_shell_command(
+                    args,
+                    verbose,
+                    yolo,
+                    ui_mode,
+                    approval_override,
+                )
+                .await
             }
-            Tool::ReadFile => execute_read_file(args, verbose, yolo).await,
-            Tool::WriteFile => execute_write_file(args, verbose, yolo).await,
-            Tool::ReadLines => execute_read_lines(args, verbose, yolo).await,
-            Tool::WriteLines => execute_write_lines(args, verbose, yolo).await,
-            Tool::ListFiles => execute_list_files(args, verbose, yolo).await,
-            Tool::FinishTask => execute_finish_task(args, verbose, yolo).await,
+            Tool::ReadFile => {
+                execute_read_file(
+                    args,
+                    verbose,
+                    yolo,
+                    ui_mode,
+                    approval_override,
+                )
+                .await
+            }
+            Tool::WriteFile => {
+                execute_write_file(
+                    args,
+                    verbose,
+                    yolo,
+                    ui_mode,
+                    approval_override,
+                )
+                .await
+            }
+            Tool::ReadLines => {
+                execute_read_lines(
+                    args,
+                    verbose,
+                    yolo,
+                    ui_mode,
+                    approval_override,
+                )
+                .await
+            }
+            Tool::WriteLines => {
+                execute_write_lines(
+                    args,
+                    verbose,
+                    yolo,
+                    ui_mode,
+                    approval_override,
+                )
+                .await
+            }
+            Tool::ListFiles => {
+                execute_list_files(
+                    args,
+                    verbose,
+                    yolo,
+                    ui_mode,
+                    approval_override,
+                )
+                .await
+            }
+            Tool::FinishTask => {
+                execute_finish_task(
+                    args,
+                    verbose,
+                    yolo,
+                    ui_mode,
+                    approval_override,
+                )
+                .await
+            }
             Tool::FinishPlanning => {
-                execute_finish_planning(args, verbose, yolo).await
+                execute_finish_planning(
+                    args,
+                    verbose,
+                    yolo,
+                    ui_mode,
+                    approval_override,
+                )
+                .await
             }
             Tool::AskForClarification => {
-                execute_ask_for_clarification(args, verbose, yolo).await
+                execute_ask_for_clarification(
+                    args,
+                    verbose,
+                    yolo,
+                    ui_mode,
+                    approval_override,
+                )
+                .await
             }
             Tool::DescribeToUser => {
-                execute_describe_to_user(args, verbose, yolo).await
+                execute_describe_to_user(
+                    args,
+                    verbose,
+                    yolo,
+                    ui_mode,
+                    approval_override,
+                )
+                .await
             }
         }
     }
@@ -144,16 +230,29 @@ impl Tool {
     }
 }
 
-fn prompt_approval(prompt: &str, _verbose: bool) -> bool {
+fn prompt_approval(
+    prompt: &str,
+    _verbose: bool,
+    ui_mode: bool,
+    approval_override: Option<bool>,
+) -> Result<bool, LoopError> {
+    if let Some(approved) = approval_override {
+        return Ok(approved);
+    }
+    if ui_mode {
+        return Err(LoopError::Prompt(PromptType::Approval(
+            prompt.to_string(),
+        )));
+    }
     println!("{}", prompt);
     io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
     let input = input.trim().to_lowercase();
     if input.is_empty() {
-        return true;
+        return Ok(true);
     }
-    input == "y"
+    Ok(input == "y")
 }
 
 fn truncate_content(content: &str) -> String {
@@ -170,7 +269,9 @@ async fn execute_shell_command(
     args: Value,
     verbose: bool,
     yolo: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+    ui_mode: bool,
+    approval_override: Option<bool>,
+) -> Result<String, LoopError> {
     let command = args["command"].as_str().unwrap_or("");
     let args_str = args["args"].as_str().unwrap_or("");
     if !yolo
@@ -180,7 +281,9 @@ async fn execute_shell_command(
                 command, args_str
             ),
             verbose,
-        )
+            ui_mode,
+            approval_override,
+        )?
     {
         return Ok(
             "Command execution request declined by the user.".to_string()
@@ -193,7 +296,9 @@ async fn execute_shell_command(
     {
         Ok(output) => output,
         Err(e) => {
-            return Err(format!("Failed to execute command: {}", e).into());
+            return Err(LoopError::Other(
+                format!("Failed to execute command: {}", e).into(),
+            ));
         }
     };
     let mut result = format!("{}", String::from_utf8_lossy(&output.stdout));
@@ -210,7 +315,9 @@ async fn execute_read_file(
     args: Value,
     _verbose: bool,
     _yolo: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+    _ui_mode: bool,
+    _approval_override: Option<bool>,
+) -> Result<String, LoopError> {
     let path = args["path"].as_str().unwrap_or("");
     match fs::read_to_string(path) {
         Ok(content) => Ok(content),
@@ -222,7 +329,9 @@ async fn execute_write_file(
     args: Value,
     verbose: bool,
     yolo: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+    ui_mode: bool,
+    approval_override: Option<bool>,
+) -> Result<String, LoopError> {
     let path = args["path"].as_str().unwrap_or("");
     let content = args["content"].as_str().unwrap_or("");
     let truncated_content = truncate_content(content);
@@ -233,7 +342,9 @@ async fn execute_write_file(
                 truncated_content, path
             ),
             verbose,
-        )
+            ui_mode,
+            approval_override,
+        )?
     {
         return Ok("File write request declined by the user.".to_string());
     }
@@ -247,7 +358,9 @@ async fn execute_read_lines(
     args: Value,
     _verbose: bool,
     _yolo: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+    _ui_mode: bool,
+    _approval_override: Option<bool>,
+) -> Result<String, LoopError> {
     let path = args["path"].as_str().unwrap_or("");
     let start_line = args["start_line"].as_u64().unwrap_or(1) as usize;
     let end_line = args["end_line"].as_u64().unwrap_or(1) as usize;
@@ -272,7 +385,9 @@ async fn execute_write_lines(
     args: Value,
     verbose: bool,
     yolo: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+    ui_mode: bool,
+    approval_override: Option<bool>,
+) -> Result<String, LoopError> {
     let path = args["path"].as_str().unwrap_or("");
     let start_line = args["start_line"].as_u64().unwrap_or(1) as usize;
     let end_line = args["end_line"].as_u64().unwrap_or(1) as usize;
@@ -288,7 +403,9 @@ async fn execute_write_lines(
                 truncated_content, start_line, end_line, path
             ),
             verbose,
-        )
+            ui_mode,
+            approval_override,
+        )?
     {
         return Ok("File write request declined by the user.".to_string());
     }
@@ -319,9 +436,10 @@ async fn execute_finish_task(
     args: Value,
     _verbose: bool,
     _yolo: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+    _ui_mode: bool,
+    _approval_override: Option<bool>,
+) -> Result<String, LoopError> {
     let message = args["message"].as_str().unwrap_or("");
-    println!("{}", format!("Task completed: {}", message));
     Ok(format!("Task completed: {}", message))
 }
 
@@ -329,9 +447,10 @@ async fn execute_finish_planning(
     args: Value,
     _verbose: bool,
     _yolo: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+    _ui_mode: bool,
+    _approval_override: Option<bool>,
+) -> Result<String, LoopError> {
     let message = args["message"].as_str().unwrap_or("");
-    println!("{}", format!("Planning completed: {}", message));
     Ok(format!("Planning completed: {}", message))
 }
 
@@ -339,8 +458,15 @@ async fn execute_ask_for_clarification(
     args: Value,
     _verbose: bool,
     _yolo: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+    ui_mode: bool,
+    _approval_override: Option<bool>,
+) -> Result<String, LoopError> {
     let question = args["question"].as_str().unwrap_or("");
+    if ui_mode {
+        return Err(LoopError::Prompt(PromptType::Clarification(
+            question.to_string(),
+        )));
+    }
     println!("{}", question);
     let mut answer = String::new();
     io::stdin().read_line(&mut answer).unwrap();
@@ -351,7 +477,9 @@ async fn execute_list_files(
     args: Value,
     _verbose: bool,
     _yolo: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+    _ui_mode: bool,
+    _approval_override: Option<bool>,
+) -> Result<String, LoopError> {
     let path = args["path"].as_str().unwrap_or("");
     let output = match process::Command::new("gls")
         .arg(path)
@@ -360,7 +488,9 @@ async fn execute_list_files(
     {
         Ok(output) => output,
         Err(e) => {
-            return Err(format!("Failed to execute list_files: {}", e).into());
+            return Err(LoopError::Other(
+                format!("Failed to execute list_files: {}", e).into(),
+            ));
         }
     };
     let mut result = format!("{}", String::from_utf8_lossy(&output.stdout));
@@ -377,10 +507,27 @@ async fn execute_describe_to_user(
     args: Value,
     _verbose: bool,
     _yolo: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+    _ui_mode: bool,
+    _approval_override: Option<bool>,
+) -> Result<String, LoopError> {
     let description = args["description"].as_str().unwrap_or("");
-    println!("{}", format!("Description: {}", description));
     Ok(format!("Description: {}", description))
+}
+
+pub fn get_primary_key(tool_name: &str) -> &str {
+    match tool_name {
+        "execute_shell_command" => "command",
+        "read_file" => "path",
+        "write_file" => "path",
+        "read_lines" => "path",
+        "write_lines" => "path",
+        "list_files" => "path",
+        "ask_for_clarification" => "",
+        "describe_to_user" => "",
+        "finish_task" => "",
+        "finish_planning" => "",
+        _ => "",
+    }
 }
 
 pub fn get_tools(yolo: bool, plan_mode: bool) -> Vec<Tool> {

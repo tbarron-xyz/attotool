@@ -1,8 +1,13 @@
 use attotool::loop_tools_until_finish;
 use clap::Parser;
 
+mod app;
 mod attotool;
+mod event;
+mod output;
+mod tool_handler;
 mod tools;
+mod tui;
 mod yaml_utilities;
 
 #[derive(Parser)]
@@ -43,31 +48,64 @@ struct Args {
     r#continue: bool,
     #[arg(long, short = 'p')]
     plan: bool,
+    #[arg(long)]
+    ui: bool,
 }
 
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
-    let message =
-        args.input.or(args.positional_input).unwrap_or("".to_string()).clone();
 
     let config_model = yaml_utilities::get_default_model();
-    let model = args.model.as_ref().unwrap_or(&config_model);
+    let model = args.model.as_ref().unwrap_or(&config_model).clone();
 
-    loop_tools_until_finish(
-        message,
-        &model,
-        args.retries,
-        args.max_tokens,
-        args.max_tool_calls,
-        &args.base_url,
-        args.verbose,
-        args.tool_call_details,
-        args.disable_agents_md,
-        args.yolo,
-        args.r#continue,
-        args.plan,
-    )
-    .await
-    .unwrap();
+    if args.ui {
+        let mut app = app::App::new(
+            model,
+            args.retries,
+            args.max_tokens,
+            args.max_tool_calls,
+            args.base_url,
+            args.verbose,
+            args.tool_call_details,
+            args.disable_agents_md,
+            args.yolo,
+            args.r#continue,
+            args.plan,
+            true, // ui_mode
+        );
+        app.run().await.unwrap();
+    } else {
+        let message = args
+            .input
+            .or(args.positional_input)
+            .unwrap_or("".to_string())
+            .clone();
+
+        let mut output = crate::output::StdoutOutput {
+            tool_call_details: args.tool_call_details,
+        };
+        let mut tool_calls = Vec::new();
+
+        loop_tools_until_finish(
+            message,
+            &model,
+            args.retries,
+            args.max_tokens,
+            args.max_tool_calls,
+            &args.base_url,
+            args.verbose,
+            args.tool_call_details,
+            args.disable_agents_md,
+            args.yolo,
+            args.r#continue,
+            args.plan,
+            false, // ui_mode
+            None,  // approval_override
+            &mut output,
+            &mut tool_calls,
+        )
+        .await
+        .unwrap();
+    }
 }
