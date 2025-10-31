@@ -44,6 +44,7 @@ pub async fn choose_tool(
         disable_agents_md,
         plan_mode,
         &available_tools_text,
+        yolo,
     );
     let system_message = ChatCompletionRequestMessage::System(
         ChatCompletionRequestSystemMessage {

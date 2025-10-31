@@ -51,36 +51,48 @@ pub fn format_system_prompt_from_yaml(
     disable_agents_md: bool,
     plan_mode: bool,
     available_tools_text: &str,
+    yolo: bool,
 ) -> String {
-    let current_dir_formatted = yaml["current_dir"]
+    let current_dir_part = yaml["current_dir"]
         .as_str()
         .unwrap_or("{}")
         .replace("{}", &current_dir.display().to_string());
-    let agents_md_formatted =
-        if !disable_agents_md && fs::metadata("AGENTS.md").is_ok() {
-            yaml["agents_md"].as_str().unwrap_or("")
-        } else {
-            ""
-        };
-    let plan_formatted = if plan_mode {
-        yaml["plan_mode"].as_str().unwrap_or("")
+    let agents_md_field = yaml["agents_md"].as_str().unwrap_or("");
+    let agents_md_part = if !disable_agents_md && !agents_md_field.is_empty() {
+        format!("\n\n{}", agents_md_field)
     } else {
-        ""
+        String::new()
+    };
+    let plan_field = yaml["plan_mode"].as_str().unwrap_or("");
+    let plan_part = if plan_mode && !plan_field.is_empty() {
+        format!("\n\n{}", plan_field)
+    } else {
+        String::new()
     };
     let instructions = yaml["task_instructions"].as_str().unwrap_or("");
-    let guidance = if plan_mode {
+    let base_guidance = if plan_mode {
         yaml["plan_guidance"].as_str().unwrap_or("")
     } else {
         yaml["task_guidance"].as_str().unwrap_or("")
     };
-    let task_formatted = format!("{}\n\n{}", instructions, guidance);
+    let ask_for_clarification_field =
+        yaml["ask_for_clarification"].as_str().unwrap_or("");
+    let ask_for_clarification_part =
+        if !yolo && !ask_for_clarification_field.is_empty() {
+            format!(" {}", ask_for_clarification_field)
+        } else {
+            String::new()
+        };
+
+    let guidance = format!("{}{}", base_guidance, ask_for_clarification_part);
+    let task_identity_part = format!("{}\n\n{}", instructions, guidance);
     let system_content = format!(
         "{}\n\n{}\n\n{}{}{}\n\n{}\n\n{}",
         yaml["yaml_tool_calling_agent_identity"].as_str().unwrap_or(""),
-        task_formatted,
-        current_dir_formatted,
-        agents_md_formatted,
-        plan_formatted,
+        task_identity_part,
+        current_dir_part,
+        agents_md_part,
+        plan_part,
         yaml["tools"]
             .as_str()
             .unwrap_or("{}")
@@ -95,6 +107,7 @@ pub fn format_system_prompt(
     disable_agents_md: bool,
     plan_mode: bool,
     available_tools_text: &str,
+    yolo: bool,
 ) -> String {
     let base_yaml: serde_yaml::Value =
         serde_yaml::from_str(DEFAULT_SYSTEM_PROMPT_YAML)
@@ -123,6 +136,7 @@ pub fn format_system_prompt(
         disable_agents_md,
         plan_mode,
         available_tools_text,
+        yolo,
     )
 }
 
