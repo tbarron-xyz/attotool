@@ -48,7 +48,7 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls to interact
 - **Plan Mode**: Enable read-only phase with `--plan` / `-p` flag, encouraging analysis and planning and forbidding all modifications
 - **Approval Prompts**: User confirmation for potentially destructive operations (`write_file`, `execute_shell_command`)
 - **AGENTS.md Support**: Automatically loads ./AGENTS.md as the first user message
-- **Conversation History**: Saves interaction history to `history.yaml`
+- **Conversation History**: Saves interaction history to `~/.local/share/attotool/history.yaml`
 - **attotool.yaml Configuration**: Load model setting from `~/.config/attotool/attotool.yaml`
 - **System Prompt Customization**: Load user-defined system prompt section overrides from `~/.config/attotool/system_prompt.yaml`, allowing customization of agent behavior while preserving defaults.
 - **Evals in GH Actions**: Automated workflows for evaluating agent performance across multiple language models on standardized tasks
@@ -89,7 +89,7 @@ attotool --continue "your follow-up task here"
 - `--tool-call-details`: Show detailed tool call results and execution output
 - `--disable-agents-md`: Disable automatic loading of AGENTS.md (default: false)
 - `--yolo`: 🚩 Enable YOLO mode (skips approval prompts for destructive operations and removes ask_for_clarification tool)
-- `--continue` / `-c`: Reads the existing history.yaml and continues the conversation with a new user message
+- `--continue` / `-c`: Reads the existing ~/.local/share/attotool/history.yaml and continues the conversation with a new user message
 - `--plan` / `-p`: Enable plan mode (read-only phase, modifications discouraged)
 
 ## Recommended Models
@@ -130,4 +130,13 @@ execute_shell_command:
 
 ## Output and Summary
 
-Upon task completion (either via the `finish_task` tool or reaching the `max_tool_calls` limit), the agent prints a summary of all executed tool calls in bracketed format (e.g., `[execute_shell_command]`, `[read_file]`). Additionally, the full conversation history, including all tool interactions and responses, is saved to `history.yaml` for review and debugging. This provides transparency into the agent's decision-making process and allows users to audit the sequence of actions taken.
+Upon task completion (either via the `finish_task` tool or reaching the `max_tool_calls` limit), the agent prints a summary of all executed tool calls in bracketed format (e.g., `[execute_shell_command]`, `[read_file]`). For example:
+
+```
+[describe_to_user ]
+[read_file README.md]
+[describe_to_user ]
+[finish_planning ]
+```
+
+Additionally, the full conversation history, including all tool interactions and responses, is saved to `~/.local/share/attotool/history.yaml` for review and debugging. This provides transparency into the agent's decision-making process and allows users to audit the sequence of actions taken.

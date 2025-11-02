@@ -12,6 +12,7 @@ use async_openai::{
 use serde_yaml::{Mapping, Value as YamlValue};
 use std::env;
 use std::fs;
+use std::path::Path;
 
 use crate::yaml_utilities::parse_tool_response_yaml;
 
@@ -135,9 +136,13 @@ pub async fn loop_tools_until_finish(
     continue_task: bool,
     plan_mode: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    let home = env::var("HOME").expect("HOME not set");
+    let history_dir = Path::new(&home).join(".local/share/attotool");
+    fs::create_dir_all(&history_dir).ok();
+    let history_path = history_dir.join("history.yaml");
     let mut history = Vec::new();
     if continue_task {
-        let history_yaml = fs::read_to_string("history.yaml")
+        let history_yaml = fs::read_to_string(&history_path)
             .expect("Failed to read history.yaml");
         history = serde_yaml::from_str(&history_yaml)
             .expect("Failed to parse history.yaml");
@@ -318,6 +323,6 @@ pub async fn loop_tools_until_finish(
         println!("[{} {}]", tool, arg);
     }
     let yaml_content = serde_yaml::to_string(&history).unwrap();
-    std::fs::write("./history.yaml", yaml_content).unwrap();
+    std::fs::write(&history_path, yaml_content).unwrap();
     Ok(())
 }
