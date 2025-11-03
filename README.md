@@ -40,6 +40,10 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls (configurab
 
 #### `Read at least 10 files in the repo and summarize your findings`
 
+[![Eval Execution Read - grok-4-fast - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-grok-4-fast-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-grok-4-fast-yaml.yml)
+[![Eval Execution Read - gemma-3-27b-it - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-gemma-3-27b-it-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-gemma-3-27b-it-yaml.yml)
+[![Eval Execution Read - mistral-7b-instruct - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-mistral-7b-instruct-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-mistral-7b-instruct-yaml.yml)
+
 | Model \ Criteria | Finished task | Read 3 files | Read 8 files |
 |------------------|---------------|--------------|--------------|
 | grok-4-fast | [![Finished task - grok-4-fast - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-grok-4-fast-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-grok-4-fast-yaml.yml) | [![Read 3 files - grok-4-fast - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-grok-4-fast-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-grok-4-fast-yaml.yml) | [![Read 8 files - grok-4-fast - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-grok-4-fast-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-grok-4-fast-yaml.yml) |
@@ -47,6 +51,10 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls (configurab
 | mistral-7b-instruct | [![Finished task - mistral-7b-instruct - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-mistral-7b-instruct-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-mistral-7b-instruct-yaml.yml) | [![Read 3 files - mistral-7b-instruct - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-mistral-7b-instruct-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-mistral-7b-instruct-yaml.yml) | [![Read 8 files - mistral-7b-instruct - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-mistral-7b-instruct-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-mistral-7b-instruct-yaml.yml) |
 
 #### `read the url at ./url.txt , fetch that url, and write a yaml summary of its contents to ./summary.yaml`
+
+[![Eval Execution Fetch URL - glm-4-32b - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-glm-4-32b-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-glm-4-32b-yaml.yml)
+[![Eval Execution Fetch URL - openai/gpt-oss-20b - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-gpt-4o-mini-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-gpt-4o-mini-yaml.yml)
+[![Eval Execution Fetch URL - mistral-small-3.1-24b - yaml](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-mistral-small-3.1-24b-yaml.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-mistral-small-3.1-24b-yaml.yml)
 
 | Model \ Criteria | Used curl or wget | summary.yaml valid YAML |
 |------------------|-------------------|-------------------------|
@@ -58,6 +66,10 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls (configurab
 
 #### `Read at least 10 files in the repo and summarize your findings`
 
+[![Eval Execution Read - grok-4-fast - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-grok-4-fast-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-grok-4-fast-json.yml)
+[![Eval Execution Read - gemma-3-27b-it - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-gemma-3-27b-it-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-gemma-3-27b-it-json.yml)
+[![Eval Execution Read - mistral-7b-instruct - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-mistral-7b-instruct-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-mistral-7b-instruct-json.yml)
+
 | Model \ Criteria | Finished task | Read 3 files | Read 8 files |
 |------------------|---------------|--------------|--------------|
 | grok-4-fast | [![Finished task - grok-4-fast - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-grok-4-fast-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-grok-4-fast-json.yml) | [![Read 3 files - grok-4-fast - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-grok-4-fast-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-grok-4-fast-json.yml) | [![Read 8 files - grok-4-fast - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-grok-4-fast-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-grok-4-fast-json.yml) |
@@ -65,6 +77,10 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls (configurab
 | mistral-7b-instruct | [![Finished task - mistral-7b-instruct - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-mistral-7b-instruct-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-mistral-7b-instruct-json.yml) | [![Read 3 files - mistral-7b-instruct - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-mistral-7b-instruct-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-mistral-7b-instruct-json.yml) | [![Read 8 files - mistral-7b-instruct - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-mistral-7b-instruct-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-mistral-7b-instruct-json.yml) |
 
 #### `read the url at ./url.txt , fetch that url, and write a yaml summary of its contents to ./summary.yaml`
+
+[![Eval Execution Fetch URL - glm-4-32b - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-glm-4-32b-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-glm-4-32b-json.yml)
+[![Eval Execution Fetch URL - openai/gpt-oss-20b - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-gpt-4o-mini-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-gpt-4o-mini-json.yml)
+[![Eval Execution Fetch URL - mistral-small-3.1-24b - json](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-mistral-small-3.1-24b-json.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-mistral-small-3.1-24b-json.yml)
 
 | Model \ Criteria | Used curl or wget | summary.yaml valid YAML |
 |------------------|-------------------|-------------------------|
@@ -76,6 +92,10 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls (configurab
 
 #### `Read at least 10 files in the repo and summarize your findings`
 
+[![Eval Execution Read - grok-4-fast - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-grok-4-fast-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-grok-4-fast-json_fixed_key.yml)
+[![Eval Execution Read - gemma-3-27b-it - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-gemma-3-27b-it-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-gemma-3-27b-it-json_fixed_key.yml)
+[![Eval Execution Read - mistral-7b-instruct - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-mistral-7b-instruct-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-read-mistral-7b-instruct-json_fixed_key.yml)
+
 | Model \ Criteria | Finished task | Read 3 files | Read 8 files |
 |------------------|---------------|--------------|--------------|
 | grok-4-fast | [![Finished task - grok-4-fast - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-grok-4-fast-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-grok-4-fast-json_fixed_key.yml) | [![Read 3 files - grok-4-fast - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-grok-4-fast-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-grok-4-fast-json_fixed_key.yml) | [![Read 8 files - grok-4-fast - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-grok-4-fast-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-grok-4-fast-json_fixed_key.yml) |
@@ -83,6 +103,10 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls (configurab
 | mistral-7b-instruct | [![Finished task - mistral-7b-instruct - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-mistral-7b-instruct-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-finished-task-read-mistral-7b-instruct-json_fixed_key.yml) | [![Read 3 files - mistral-7b-instruct - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-mistral-7b-instruct-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-3-files-read-mistral-7b-instruct-json_fixed_key.yml) | [![Read 8 files - mistral-7b-instruct - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-mistral-7b-instruct-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-read-8-files-read-mistral-7b-instruct-json_fixed_key.yml) |
 
 #### `read the url at ./url.txt , fetch that url, and write a yaml summary of its contents to ./summary.yaml`
+
+[![Eval Execution Fetch URL - glm-4-32b - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-glm-4-32b-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-glm-4-32b-json_fixed_key.yml)
+[![Eval Execution Fetch URL - openai/gpt-oss-20b - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-gpt-4o-mini-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-gpt-4o-mini-json_fixed_key.yml)
+[![Eval Execution Fetch URL - mistral-small-3.1-24b - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-mistral-small-3.1-24b-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-execution-fetch-url-mistral-small-3.1-24b-json_fixed_key.yml)
 
 | Model \ Criteria | Used curl or wget | summary.yaml valid YAML |
 |------------------|-------------------|-------------------------|
