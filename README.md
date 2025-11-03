@@ -185,6 +185,22 @@ Supported formats: `yaml`, `json`, `json_fixed_key`.
 
 Different response formats are provided because various language models excel with specific tool call structures. `yaml` is human-readable and works well with most models. `json` allows flexible key-value pairs for complex arguments. `json_fixed_key` enforces a strict schema for models that require precise JSON structures, potentially improving reliability for certain LLMs.
 
+**YAML:**
+```yaml
+read_file:
+  path: '/some/file.txt'
+```
+
+**JSON:**
+```json
+{"read_file":{"path":"/some/file.txt"}}
+```
+
+**JSON Fixed Key:**
+```json
+{"tool":"read_file","tool_args":{"path":"/some/file.txt"}}
+```
+
 ## Recommended Models
 
 The following models have been tested and have worked at least once with attotool:
