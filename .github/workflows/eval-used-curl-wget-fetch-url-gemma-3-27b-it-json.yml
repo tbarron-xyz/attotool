@@ -1,0 +1,16 @@
+name: Eval Used CURL or WGET Fetch URL - gemma-3-27b-it - json
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Fetch URL - gemma-3-27b-it - json"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-used-curl-wget-format-reusable.yml
+    with:
+      model: gemma-3-27b-it
+      run_id: ${{ github.event.workflow_run.id }}
+      format: json

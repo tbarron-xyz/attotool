@@ -1,0 +1,16 @@
+name: Eval Read 3 Files Read - mistral-small-3.1-24b - json_fixed_key
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Read - mistral-small-3.1-24b - json_fixed_key"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-read-3-files-format-reusable.yml
+    with:
+      model: mistral-small-3.1-24b
+      run_id: ${{ github.event.workflow_run.id }}
+      format: json_fixed_key

@@ -1,4 +1,4 @@
-name: Eval Execution Read - grok-4-fast - yaml
+name: Eval Execution Read - glm-4-32b - yaml
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ jobs:
   run-eval:
     uses: ./.github/workflows/eval-execution-read-format-reusable.yml
     with:
-      short_model: grok-4-fast
-      full_model: x-ai/grok-4-fast
+      short_model: glm-4-32b
+      full_model: z-ai/glm-4-32b
       format: yaml
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
