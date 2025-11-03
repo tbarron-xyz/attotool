@@ -1,0 +1,16 @@
+name: Eval Read 8 Files Read - anthropic/claude-3-haiku - yaml
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Read - anthropic/claude-3-haiku - yaml"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-read-8-files-format-reusable.yml
+    with:
+      model: claude-3-haiku
+      run_id: ${{ github.event.workflow_run.id }}
+      format: yaml

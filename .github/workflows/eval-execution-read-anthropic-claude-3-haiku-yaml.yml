@@ -1,0 +1,14 @@
+name: Eval Execution Read - anthropic/claude-3-haiku - yaml
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-eval:
+    uses: ./.github/workflows/eval-execution-read-format-reusable.yml
+    with:
+      short_model: claude-3-haiku
+      full_model: anthropic/claude-3-haiku
+      format: yaml
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

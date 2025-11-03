@@ -1,0 +1,14 @@
+name: Eval Execution Read - meta-llama/llama-3.3-70b-instruct - json
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-eval:
+    uses: ./.github/workflows/eval-execution-read-format-reusable.yml
+    with:
+      short_model: llama-3.3-70b-instruct
+      full_model: meta-llama/llama-3.3-70b-instruct
+      format: json
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

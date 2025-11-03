@@ -1,0 +1,16 @@
+name: Eval Read 8 Files Read - meta-llama/llama-3.3-70b-instruct - json_fixed_key
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Read - meta-llama/llama-3.3-70b-instruct - json_fixed_key"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-read-8-files-format-reusable.yml
+    with:
+      model: llama-3.3-70b-instruct
+      run_id: ${{ github.event.workflow_run.id }}
+      format: json_fixed_key

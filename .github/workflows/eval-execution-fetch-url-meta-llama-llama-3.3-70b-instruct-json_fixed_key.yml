@@ -1,0 +1,14 @@
+name: Eval Execution Fetch URL - meta-llama/llama-3.3-70b-instruct - json_fixed_key
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-eval:
+    uses: ./.github/workflows/eval-execution-fetch-format-reusable.yml
+    with:
+      short_model: llama-3.3-70b-instruct
+      full_model: meta-llama/llama-3.3-70b-instruct
+      format: json_fixed_key
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
