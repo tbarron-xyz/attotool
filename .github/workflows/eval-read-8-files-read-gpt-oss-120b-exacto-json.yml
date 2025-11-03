@@ -1,8 +1,8 @@
-name: Eval Read 8 Files Read - openai-gpt-4o-mini - yaml
+name: Eval Read 8 Files Read - gpt-oss-120b-exacto - json
 
 on:
   workflow_run:
-    workflows: ["Eval Execution Read - openai-gpt-4o-mini - yaml"]
+    workflows: ["Eval Execution Read - gpt-oss-120b-exacto - json"]
     types:
       - completed
 
@@ -11,6 +11,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/eval-read-8-files-format-reusable.yml
     with:
-      model: openai-gpt-4o-mini
+      model: gpt-oss-120b-exacto
       run_id: ${{ github.event.workflow_run.id }}
-      format: yaml
+      format: json

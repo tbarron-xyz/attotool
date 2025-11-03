@@ -1,8 +1,8 @@
-name: Eval Valid YAML Fetch URL - openai-gpt-4o-mini - json_fixed_key
+name: Eval Valid YAML Fetch URL - gpt-oss-120b-exacto - json
 
 on:
   workflow_run:
-    workflows: ["Eval Execution Fetch URL - openai-gpt-4o-mini - json_fixed_key"]
+    workflows: ["Eval Execution Fetch URL - gpt-oss-120b-exacto - json"]
     types:
       - completed
 
@@ -11,6 +11,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/eval-valid-yaml-format-reusable.yml
     with:
-      model: openai-gpt-4o-mini
+      model: gpt-oss-120b-exacto
       run_id: ${{ github.event.workflow_run.id }}
-      format: json_fixed_key
+      format: json

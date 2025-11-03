@@ -1,4 +1,4 @@
-name: Eval Execution Read - openai-gpt-4o-mini - json
+name: Eval Execution Read - gpt-oss-120b-exacto - json
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ jobs:
   run-eval:
     uses: ./.github/workflows/eval-execution-read-format-reusable.yml
     with:
-      short_model: openai-gpt-4o-mini
-      full_model: openai/gpt-4o-mini
+      short_model: gpt-oss-120b-exacto
+      full_model: openai/gpt-oss-120b:exacto
       format: json
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

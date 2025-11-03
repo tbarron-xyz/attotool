@@ -1,4 +1,4 @@
-name: Eval Execution Fetch URL - openai-gpt-4o-mini - json_fixed_key
+name: Eval Execution Fetch URL - gpt-oss-120b-exacto - yaml
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ jobs:
   run-eval:
     uses: ./.github/workflows/eval-execution-fetch-format-reusable.yml
     with:
-      short_model: openai-gpt-4o-mini
-      full_model: openai/gpt-4o-mini
-      format: json_fixed_key
+      short_model: gpt-oss-120b-exacto
+      full_model: openai/gpt-oss-120b:exacto
+      format: yaml
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

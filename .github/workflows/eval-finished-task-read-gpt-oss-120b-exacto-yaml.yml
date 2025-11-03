@@ -1,8 +1,8 @@
-name: Eval Finished Task Read - openai-gpt-4o-mini - json
+name: Eval Finished Task Read - gpt-oss-120b-exacto - yaml
 
 on:
   workflow_run:
-    workflows: ["Eval Execution Read - openai-gpt-4o-mini - json"]
+    workflows: ["Eval Execution Read - gpt-oss-120b-exacto - yaml"]
     types:
       - completed
 
@@ -11,6 +11,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/eval-finished-task-format-reusable.yml
     with:
-      model: openai-gpt-4o-mini
+      model: gpt-oss-120b-exacto
       run_id: ${{ github.event.workflow_run.id }}
-      format: json
+      format: yaml
