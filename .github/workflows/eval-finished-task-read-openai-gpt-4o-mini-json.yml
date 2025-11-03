@@ -1,0 +1,16 @@
+name: Eval Finished Task Read - openai-gpt-4o-mini - json
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Read - openai-gpt-4o-mini - json"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-finished-task-format-reusable.yml
+    with:
+      model: openai-gpt-4o-mini
+      run_id: ${{ github.event.workflow_run.id }}
+      format: json

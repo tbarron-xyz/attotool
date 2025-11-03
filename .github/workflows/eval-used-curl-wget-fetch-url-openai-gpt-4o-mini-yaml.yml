@@ -1,0 +1,16 @@
+name: Eval Used Curl Wget Fetch URL - openai-gpt-4o-mini - yaml
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Fetch URL - openai-gpt-4o-mini - yaml"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-used-curl-wget-format-reusable.yml
+    with:
+      model: openai-gpt-4o-mini
+      run_id: ${{ github.event.workflow_run.id }}
+      format: yaml

@@ -1,0 +1,16 @@
+name: Eval Valid YAML Fetch URL - devstral-small - yaml
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Fetch URL - devstral-small - yaml"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-valid-yaml-format-reusable.yml
+    with:
+      model: devstral-small
+      run_id: ${{ github.event.workflow_run.id }}
+      format: yaml

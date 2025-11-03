@@ -1,0 +1,14 @@
+name: Eval Execution Fetch URL - devstral-small - json
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-eval:
+    uses: ./.github/workflows/eval-execution-fetch-format-reusable.yml
+    with:
+      short_model: devstral-small
+      full_model: mistralai/devstral-small
+      format: json
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

@@ -1,0 +1,16 @@
+name: Eval Read 8 Files Read - devstral-small - yaml
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Read - devstral-small - yaml"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-read-8-files-format-reusable.yml
+    with:
+      model: devstral-small
+      run_id: ${{ github.event.workflow_run.id }}
+      format: yaml
