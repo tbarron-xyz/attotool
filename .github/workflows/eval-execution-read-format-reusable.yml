@@ -1,6 +1,17 @@
 name: Eval Execution Read Format Reusable
 
 on:
+  workflow_dispatch:
+    inputs:
+      short_model:
+        required: true
+        type: string
+      full_model:
+        required: true
+        type: string
+      format:
+        required: true
+        type: string
   workflow_call:
     inputs:
       short_model:
