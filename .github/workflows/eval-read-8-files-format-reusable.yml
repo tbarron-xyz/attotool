@@ -1,0 +1,35 @@
+name: Eval Read 8 Files Format Reusable
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        required: true
+        type: string
+      run_id:
+        required: true
+        type: string
+      format:
+        required: true
+        type: string
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: eval-result-${{ inputs.model }}-${{ inputs.format }}
+          run-id: ${{ inputs.run_id }}
+          path: .
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Evaluate
+        run: |
+          read_count=$(grep -c "\[read_file " summary.txt)
+          if [ "$read_count" -ge 8 ]; then
+            echo "Passed"
+          else
+            echo "Failed"
+            exit 1
+          fi

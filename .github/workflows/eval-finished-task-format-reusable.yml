@@ -1,0 +1,34 @@
+name: Eval Finished Task Format Reusable
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        required: true
+        type: string
+      run_id:
+        required: true
+        type: string
+      format:
+        required: true
+        type: string
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: eval-result-${{ inputs.model }}-${{ inputs.format }}
+          run-id: ${{ inputs.run_id }}
+          path: .
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Evaluate
+        run: |
+          if grep -q "\[finish_task" summary.txt; then
+            echo "Passed"
+          else
+            echo "Failed"
+            exit 1
+          fi

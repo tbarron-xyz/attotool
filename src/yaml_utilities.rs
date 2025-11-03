@@ -55,7 +55,10 @@ pub fn get_default_format() -> crate::response_formats::ToolResponseFormat {
     format
 }
 
-pub fn get_format(fmt_str: Option<&str>, default: crate::response_formats::ToolResponseFormat) -> crate::response_formats::ToolResponseFormat {
+pub fn get_format(
+    fmt_str: Option<&str>,
+    default: crate::response_formats::ToolResponseFormat,
+) -> crate::response_formats::ToolResponseFormat {
     if let Some(s) = fmt_str {
         match crate::response_formats::ToolResponseFormat::from_str(s) {
             Ok(f) => f,

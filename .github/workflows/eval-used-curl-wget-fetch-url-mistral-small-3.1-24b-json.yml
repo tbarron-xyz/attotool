@@ -1,0 +1,16 @@
+name: Eval Used CURL or WGET Fetch URL - mistral-small-3.1-24b - json
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Fetch URL - mistral-small-3.1-24b - json"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-used-curl-wget-format-reusable.yml
+    with:
+      model: mistral-small-3.1-24b
+      run_id: ${{ github.event.workflow_run.id }}
+      format: json

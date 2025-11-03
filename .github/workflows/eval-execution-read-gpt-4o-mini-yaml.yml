@@ -1,0 +1,14 @@
+name: Eval Execution Read - gpt-4o-mini - yaml
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-eval:
+    uses: ./.github/workflows/eval-execution-read-format-reusable.yml
+    with:
+      short_model: gpt-4o-mini
+      full_model: openai/gpt-4o-mini
+      format: yaml
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

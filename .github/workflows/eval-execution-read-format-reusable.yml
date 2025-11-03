@@ -1,0 +1,41 @@
+name: Eval Execution Read Format Reusable
+
+on:
+  workflow_call:
+    inputs:
+      short_model:
+        required: true
+        type: string
+      full_model:
+        required: true
+        type: string
+      format:
+        required: true
+        type: string
+    secrets:
+      OPENROUTER_API_KEY:
+        required: true
+
+jobs:
+  run-eval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Fetch cached Rust target
+        uses: actions/cache@v4
+        with:
+          path: |
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/*.rs') }}
+      - name: Run eval
+        run: ./target/release/attotool --model ${{ inputs.full_model }} --yolo --format ${{ inputs.format }} --input "Read at least 10 files in the repo and summarize your findings" > summary.txt
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-result-${{ inputs.short_model }}-${{ inputs.format }}
+          path: |
+            summary.txt
+            history.yaml

@@ -1,0 +1,16 @@
+name: Eval Used CURL or WGET Fetch URL - glm-4-32b - json_fixed_key
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Fetch URL - glm-4-32b - json_fixed_key"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-used-curl-wget-format-reusable.yml
+    with:
+      model: glm-4-32b
+      run_id: ${{ github.event.workflow_run.id }}
+      format: json_fixed_key
