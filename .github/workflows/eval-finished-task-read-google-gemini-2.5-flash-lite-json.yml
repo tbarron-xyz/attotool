@@ -1,0 +1,16 @@
+name: Eval Finished Task Read - google/gemini-2.5-flash-lite - json
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Read - google/gemini-2.5-flash-lite - json"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-finished-task-format-reusable.yml
+    with:
+      model: google-gemini-2.5-flash-lite
+      run_id: ${{ github.event.workflow_run.id }}
+      format: json

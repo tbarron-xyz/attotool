@@ -1,0 +1,14 @@
+name: Eval Execution Fetch URL - google/gemini-2.5-flash-lite - yaml
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-eval:
+    uses: ./.github/workflows/eval-execution-fetch-format-reusable.yml
+    with:
+      short_model: google-gemini-2.5-flash-lite
+      full_model: google/gemini-2.5-flash-lite
+      format: yaml
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
