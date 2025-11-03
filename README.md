@@ -7,6 +7,11 @@ A tiny YAML-tool-calling agent built from scratch in Rust.
 
 attotool is a minimalistic agent that uses YAML-formatted tool calls (configurable to JSON) to interact with the local system. It lets large language models choose and execute tools in a loop until task completion, in a compact, structured, human-readable format.
 
+## Evals (12 models)
+
+<details>
+<summary>Evals</summary>
+
 ## Legacy eval results (yaml format only)
 
 `Read at least 10 files in the repo and summarize your findings`
@@ -218,6 +223,8 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls (configurab
 | openai/gpt-5-nano | [![Used curl or wget - openai/gpt-5-nano - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-used-curl-wget-fetch-url-openai-gpt-5-nano-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-used-curl-wget-fetch-url-openai-gpt-5-nano-json_fixed_key.yml) | [![Valid YAML - openai/gpt-5-nano - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-valid-yaml-fetch-url-openai-gpt-5-nano-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-valid-yaml-fetch-url-openai-gpt-5-nano-json_fixed_key.yml) |
 | anthropic/claude-3-haiku | [![Used curl or wget - anthropic/claude-3-haiku - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-used-curl-wget-fetch-url-anthropic-claude-3-haiku-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-used-curl-wget-fetch-url-anthropic-claude-3-haiku-json_fixed_key.yml) | [![Valid YAML - anthropic/claude-3-haiku - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-valid-yaml-fetch-url-anthropic-claude-3-haiku-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-valid-yaml-fetch-url-anthropic-claude-3-haiku-json_fixed_key.yml) |
 | meta-llama/llama-3.3-70b-instruct | [![Used curl or wget - meta-llama/llama-3.3-70b-instruct - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-used-curl-wget-fetch-url-meta-llama-llama-3.3-70b-instruct-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-used-curl-wget-fetch-url-meta-llama-llama-3.3-70b-instruct-json_fixed_key.yml) | [![Valid YAML - meta-llama/llama-3.3-70b-instruct - json_fixed_key](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-valid-yaml-fetch-url-meta-llama-llama-3.3-70b-instruct-json_fixed_key.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/eval-valid-yaml-fetch-url-meta-llama-llama-3.3-70b-instruct-json_fixed_key.yml) |
+
+</details>
 
 ## Available Tools
 - `execute_shell_command`: Run shell commands with arguments. 🟢 **Requires explicit user confirmation.**
