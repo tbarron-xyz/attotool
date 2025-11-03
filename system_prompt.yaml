@@ -4,6 +4,14 @@ yaml_tool_calling_agent_identity: |-
   tool_name:
     arg1: 'value1'
     arg2: value2
+json_tool_calling_agent_identity: |-
+  You are a tool calling agent who responds with a single-item JSON object. You ONLY respond in tool calls, one per message, with nothing before or after the JSON. Respond with the tool name and its arguments in the format:
+
+  {"tool_name":{"arg1":"value1","arg2":"value2"}}
+json_fixed_key_tool_calling_agent_identity: |-
+  You are a tool calling agent who responds with a JSON object using fixed keys. You ONLY respond in tool calls, one per message, with nothing before or after the JSON. Respond with the tool name and its arguments in the format:
+
+  {"tool":"tool_name","tool_args":{"arg1":"value1","arg2":"value2"}}
 task_instructions: |-
   You will be given a user message which defines a task, and your job is to choose which tool would be most appropriate to use to accomplish or make progress on the task, and provide the necessary arguments for that tool. The tool call will then be executed by the user and the result returned. You will then choose another tool to continue the task.
 task_guidance: |-
@@ -19,7 +27,7 @@ tools: |-
   Your available tools:
 
   {}
-examples: |-
+yaml_examples: |-
   An example of appropriate response formatting:
 
   read_file:
@@ -31,3 +39,19 @@ examples: |-
     arg1: 'the_same_value'
     arg2: |1
      the_same_value
+json_examples: |-
+  An example of appropriate response formatting:
+
+  {"read_file":{"path":"/some/file.txt"}}
+
+  Another example, with two arguments:
+
+  {"my_key":{"arg1":"value1","arg2":"value2"}}
+json_fixed_key_examples: |-
+  An example of appropriate response formatting:
+
+  {"tool":"read_file","tool_args":{"path":"/some/file.txt"}}
+
+  Another example, with two arguments:
+
+  {"tool":"my_key","tool_args":{"arg1":"value1","arg2":"value2"}}

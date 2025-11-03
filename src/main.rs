@@ -2,6 +2,7 @@ use attotool::loop_tools_until_finish;
 use clap::Parser;
 
 mod attotool;
+mod response_formats;
 mod tools;
 mod yaml_utilities;
 
@@ -43,6 +44,8 @@ struct Args {
     r#continue: bool,
     #[arg(long, short = 'p')]
     plan: bool,
+    #[arg(long, help = "Response format: yaml, json, json_fixed_key")]
+    format: Option<String>,
 }
 
 #[tokio::main]
@@ -53,6 +56,10 @@ async fn main() {
 
     let config_model = yaml_utilities::get_default_model();
     let model = args.model.as_ref().unwrap_or(&config_model);
+
+    let config_format = yaml_utilities::get_default_format();
+    let response_format =
+        yaml_utilities::get_format(args.format.as_deref(), config_format);
 
     loop_tools_until_finish(
         message,
@@ -67,6 +74,7 @@ async fn main() {
         args.yolo,
         args.r#continue,
         args.plan,
+        &response_format,
     )
     .await
     .unwrap();

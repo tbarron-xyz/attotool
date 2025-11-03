@@ -1,4 +1,4 @@
-use serde_yaml::Value;
+use serde_json::Value;
 use std::fs;
 use std::io::{self, Write};
 use std::process;

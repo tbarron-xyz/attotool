@@ -5,7 +5,7 @@ A tiny YAML-tool-calling agent built from scratch in Rust.
 [![build docker image](https://github.com/tbarron-xyz/attotool/actions/workflows/build-docker.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/build-docker.yml)
 [![build rust](https://github.com/tbarron-xyz/attotool/actions/workflows/ci-build.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/ci-build.yml)
 
-attotool is a minimalistic agent that uses YAML-formatted tool calls to interact with the local system. It lets large language models choose and execute tools in a loop until task completion, in a compact, structured, human-readable format.
+attotool is a minimalistic agent that uses YAML-formatted tool calls (configurable to JSON) to interact with the local system. It lets large language models choose and execute tools in a loop until task completion, in a compact, structured, human-readable format.
 
 ## Eval Results
 
@@ -49,7 +49,7 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls to interact
 - **Approval Prompts**: User confirmation for potentially destructive operations (`write_file`, `execute_shell_command`)
 - **AGENTS.md Support**: Automatically loads ./AGENTS.md as the first user message
 - **Conversation History**: Saves interaction history to `~/.local/share/attotool/history.yaml`
-- **attotool.yaml Configuration**: Load model setting from `~/.config/attotool/attotool.yaml`
+- **config.yaml Configuration**: Load model and format settings from `~/.config/attotool/config.yaml`
 - **System Prompt Customization**: Load user-defined system prompt section overrides from `~/.config/attotool/system_prompt.yaml`, allowing customization of agent behavior while preserving defaults.
 - **Evals in GH Actions**: Automated workflows for evaluating agent performance across multiple language models on standardized tasks
 
@@ -90,7 +90,21 @@ attotool --continue "your follow-up task here"
 - `--disable-agents-md`: Disable automatic loading of AGENTS.md (default: false)
 - `--yolo`: 🚩 Enable YOLO mode (skips approval prompts for destructive operations and removes ask_for_clarification tool)
 - `--continue` / `-c`: Reads the existing ~/.local/share/attotool/history.yaml and continues the conversation with a new user message
+- `--format`: Response format (yaml, json, json_fixed_key; default: yaml)
 - `--plan` / `-p`: Enable plan mode (read-only phase, modifications discouraged)
+
+## Configuration
+
+attotool can be configured via `~/.config/attotool/config.yaml`:
+
+```yaml
+model: mistralai/mistral-small-3.1-24b-instruct
+format: yaml
+```
+
+Supported formats: `yaml`, `json`, `json_fixed_key`.
+
+Different response formats are provided because various language models excel with specific tool call structures. `yaml` is human-readable and works well with most models. `json` allows flexible key-value pairs for complex arguments. `json_fixed_key` enforces a strict schema for models that require precise JSON structures, potentially improving reliability for certain LLMs.
 
 ## Recommended Models
 
@@ -116,7 +130,7 @@ The following models have been tested and have worked at least once with attotoo
 The agent works by:
 
 1. Sending the task and available tools to an LLM
-2. Receiving a YAML-formatted tool call response
+2. Receiving a tool call response (format configurable via --format or config.yaml, defaulting to YAML)
 3. Parsing and executing the tool locally
 4. Return tool call results to LLM to continue the conversation
 

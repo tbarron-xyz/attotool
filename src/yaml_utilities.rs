@@ -1,3 +1,4 @@
+use crate::response_formats::ToolResponseFormat;
 use serde::Deserialize;
 use serde_yaml::{Mapping, Value as YamlValue};
 use std::env;
@@ -7,6 +8,7 @@ use std::path::Path;
 #[derive(Deserialize)]
 pub struct Config {
     model: Option<String>,
+    format: Option<String>,
 }
 
 pub static DEFAULT_SYSTEM_PROMPT_YAML: &str =
@@ -28,6 +30,43 @@ pub fn get_default_model() -> String {
         }
     }
     model
+}
+
+pub fn get_default_format() -> crate::response_formats::ToolResponseFormat {
+    let config_path = format!(
+        "{}/.config/attotool/config.yaml",
+        env::var("HOME").expect("HOME not set")
+    );
+    let mut format = crate::response_formats::ToolResponseFormat::Yaml;
+    if Path::new(&config_path).exists() {
+        if let Ok(content) = fs::read_to_string(&config_path) {
+            if let Ok(config) = serde_yaml::from_str::<Config>(&content) {
+                if let Some(f) = config.format {
+                    match crate::response_formats::ToolResponseFormat::from_str(
+                        &f,
+                    ) {
+                        Ok(parsed) => format = parsed,
+                        Err(e) => eprintln!("Warning: {}", e),
+                    }
+                }
+            }
+        }
+    }
+    format
+}
+
+pub fn get_format(fmt_str: Option<&str>, default: crate::response_formats::ToolResponseFormat) -> crate::response_formats::ToolResponseFormat {
+    if let Some(s) = fmt_str {
+        match crate::response_formats::ToolResponseFormat::from_str(s) {
+            Ok(f) => f,
+            Err(e) => {
+                eprintln!("Warning: {}", e);
+                default
+            }
+        }
+    } else {
+        default
+    }
 }
 
 pub fn merge_yaml(
@@ -52,6 +91,7 @@ pub fn format_system_prompt_from_yaml(
     plan_mode: bool,
     available_tools_text: &str,
     yolo: bool,
+    response_format: &ToolResponseFormat,
 ) -> String {
     let current_dir_part = yaml["current_dir"]
         .as_str()
@@ -86,9 +126,29 @@ pub fn format_system_prompt_from_yaml(
 
     let guidance = format!("{}{}", base_guidance, ask_for_clarification_part);
     let task_identity_part = format!("{}\n\n{}", instructions, guidance);
+    let identity = match response_format {
+        ToolResponseFormat::Yaml => {
+            yaml["yaml_tool_calling_agent_identity"].as_str().unwrap_or("")
+        }
+        ToolResponseFormat::JsonVariableKeys => {
+            yaml["json_tool_calling_agent_identity"].as_str().unwrap_or("")
+        }
+        ToolResponseFormat::JsonFixedKeys => {
+            yaml["json_fixed_key_tool_calling_agent_identity"]
+                .as_str()
+                .unwrap_or("")
+        }
+    };
+    let examples_key = match response_format {
+        ToolResponseFormat::Yaml => "yaml_examples",
+        ToolResponseFormat::JsonVariableKeys => "json_examples",
+        ToolResponseFormat::JsonFixedKeys => "json_fixed_key_examples",
+    };
+    let examples =
+        yaml[examples_key].as_str().unwrap_or("").trim_start_matches('\n');
     let system_content = format!(
         "{}\n\n{}\n\n{}{}{}\n\n{}\n\n{}",
-        yaml["yaml_tool_calling_agent_identity"].as_str().unwrap_or(""),
+        identity,
         task_identity_part,
         current_dir_part,
         agents_md_part,
@@ -97,7 +157,7 @@ pub fn format_system_prompt_from_yaml(
             .as_str()
             .unwrap_or("{}")
             .replace("{}", available_tools_text),
-        yaml["examples"].as_str().unwrap_or("").trim_start_matches('\n')
+        examples
     );
     system_content
 }
@@ -108,6 +168,7 @@ pub fn format_system_prompt(
     plan_mode: bool,
     available_tools_text: &str,
     yolo: bool,
+    response_format: &ToolResponseFormat,
 ) -> String {
     let base_yaml: serde_yaml::Value =
         serde_yaml::from_str(DEFAULT_SYSTEM_PROMPT_YAML)
@@ -137,6 +198,7 @@ pub fn format_system_prompt(
         plan_mode,
         available_tools_text,
         yolo,
+        response_format,
     )
 }
 

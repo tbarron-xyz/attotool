@@ -7,14 +7,16 @@ use async_openai::{
         ChatCompletionRequestSystemMessageContent,
         ChatCompletionRequestUserMessage,
         ChatCompletionRequestUserMessageContent, CreateChatCompletionRequest,
+        ResponseFormat, ResponseFormatJsonSchema,
     },
 };
-use serde_yaml::{Mapping, Value as YamlValue};
+use serde_json::{Map, Value};
+use serde_yaml;
 use std::env;
 use std::fs;
 use std::path::Path;
 
-use crate::yaml_utilities::parse_tool_response_yaml;
+use crate::response_formats::{ToolResponseFormat, parse_tool_response};
 
 pub async fn choose_tool(
     history: Vec<ChatCompletionRequestMessage>,
@@ -26,7 +28,8 @@ pub async fn choose_tool(
     yolo: bool,
     disable_agents_md: bool,
     plan_mode: bool,
-) -> Result<Mapping, Box<dyn std::error::Error>> {
+    tool_response_format: &ToolResponseFormat,
+) -> Result<Map<String, Value>, Box<dyn std::error::Error>> {
     let api_key =
         env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
     let client = Client::with_config(
@@ -36,6 +39,10 @@ pub async fn choose_tool(
     );
 
     let tools = crate::tools::get_tools(yolo, plan_mode);
+    let tool_names: Vec<serde_json::Value> = tools
+        .iter()
+        .map(|t| serde_json::Value::String(t.name().to_string()))
+        .collect();
     let available_tools_text =
         tools.iter().map(|t| t.format()).collect::<Vec<_>>().join("\n");
     let current_dir = std::env::current_dir()
@@ -46,6 +53,7 @@ pub async fn choose_tool(
         plan_mode,
         &available_tools_text,
         yolo,
+        tool_response_format,
     );
     let system_message = ChatCompletionRequestMessage::System(
         ChatCompletionRequestSystemMessage {
@@ -59,10 +67,45 @@ pub async fn choose_tool(
     let mut messages = vec![system_message];
     messages.extend(history);
 
+    let response_format_api = match tool_response_format {
+        ToolResponseFormat::JsonFixedKeys => {
+            let schema = serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "tool": {
+                        "type": "string",
+                        "enum": tool_names
+                    },
+                    "tool_args": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "anyOf": [
+                                {"type": "string"},
+                                {"type": "number"}
+                            ]
+                        }
+                    }
+                },
+                "required": ["tool", "tool_args"],
+                "additionalProperties": false
+            });
+            Some(ResponseFormat::JsonSchema {
+                json_schema: ResponseFormatJsonSchema {
+                    name: "tool_call".to_string(),
+                    schema: Some(schema),
+                    strict: Some(true),
+                    description: Some("A single tool call".to_string()),
+                },
+            })
+        }
+        _ => None,
+    };
+
     let request = CreateChatCompletionRequest {
         model: model.to_string(),
         messages,
         max_completion_tokens: Some(max_tokens),
+        response_format: response_format_api,
         ..Default::default()
     };
 
@@ -82,25 +125,24 @@ pub async fn choose_tool(
             );
         }
         if !trimmed.is_empty() {
-            if let Ok(normalized) = parse_tool_response_yaml(trimmed, verbose) {
+            if let Ok(normalized) =
+                parse_tool_response(tool_response_format, trimmed, verbose)
+            {
                 return Ok(normalized);
             }
-            // Fallback: return a mapping for finish tool
+            // Fallback: return a map for finish tool
             let finish_tool_name = if plan_mode {
                 "finish_planning"
             } else {
                 "finish_task"
             };
-            let mut args = Mapping::new();
+            let mut args = Map::new();
             args.insert(
-                YamlValue::String("message".to_string()),
-                YamlValue::String(trimmed.to_string()),
+                "message".to_string(),
+                Value::String(trimmed.to_string()),
             );
-            let mut mapping = Mapping::new();
-            mapping.insert(
-                YamlValue::String(finish_tool_name.to_string()),
-                YamlValue::Mapping(args),
-            );
+            let mut mapping = Map::new();
+            mapping.insert(finish_tool_name.to_string(), Value::Object(args));
             return Ok(mapping);
         }
     }
@@ -109,7 +151,7 @@ pub async fn choose_tool(
 
 pub async fn execute_tool_call(
     tool_name: String,
-    args: YamlValue,
+    args: Value,
     verbose: bool,
     yolo: bool,
     plan_mode: bool,
@@ -135,6 +177,7 @@ pub async fn loop_tools_until_finish(
     yolo: bool,
     continue_task: bool,
     plan_mode: bool,
+    tool_response_format: &ToolResponseFormat,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let home = env::var("HOME").expect("HOME not set");
     let history_dir = Path::new(&home).join(".local/share/attotool");
@@ -186,13 +229,14 @@ pub async fn loop_tools_until_finish(
             yolo,
             disable_agents_md,
             plan_mode,
+            tool_response_format,
         )
         .await?;
-        let yaml_value = YamlValue::Mapping(mapping.clone());
+        let json_value = Value::Object(mapping.clone());
         let map = &mapping;
         let (key, value) =
             map.iter().next().expect("Mapping should have at least one entry");
-        let tool_name = key.as_str().expect("Key should be a string");
+        let tool_name = key.to_string();
         let tool = tool_name.to_string();
         let args_parsed = value.clone();
 
@@ -209,24 +253,24 @@ pub async fn loop_tools_until_finish(
             "finish_planning" => "",
             _ => "",
         };
-        let primary_value = args_parsed
-            .as_mapping()
-            .and_then(|m| m.get(key))
-            .and_then(|v| v.as_str())
-            .unwrap_or("")
-            .to_string();
+        let primary_value = if let Value::Object(ref m) = args_parsed {
+            m.get(key).and_then(|v| v.as_str()).unwrap_or("")
+        } else {
+            ""
+        }
+        .to_string();
 
         tool_calls.push((tool.clone(), primary_value.clone()));
         if verbose {
             println!(
                 "Tool: {}, Args: {}",
                 tool,
-                serde_yaml::to_string(&args_parsed)?
+                serde_json::to_string(&args_parsed)?
             );
         }
 
         let assistant_content =
-            serde_yaml::to_string(&yaml_value).unwrap_or_default();
+            serde_json::to_string(&json_value).unwrap_or_default();
         if !assistant_content.trim().is_empty() {
             history.push(ChatCompletionRequestMessage::Assistant(
                 ChatCompletionRequestAssistantMessage {
@@ -242,17 +286,16 @@ pub async fn loop_tools_until_finish(
             ));
         }
 
-        let args_str = if let YamlValue::Mapping(map) = &args_parsed {
+        let args_str = if let Value::Object(map) = &args_parsed {
             map.iter()
                 .map(|(k, v)| {
-                    let key_str = k.as_str().unwrap_or("key");
-                    if let YamlValue::String(s) = v {
-                        format!("{}: '{}'", key_str, s)
+                    if let Value::String(s) = v {
+                        format!("{}: '{}'", k, s)
                     } else {
                         format!(
                             "{}: {}",
-                            key_str,
-                            serde_yaml::to_string(v).unwrap().trim()
+                            k,
+                            serde_json::to_string(v).unwrap().trim()
                         )
                     }
                 })
