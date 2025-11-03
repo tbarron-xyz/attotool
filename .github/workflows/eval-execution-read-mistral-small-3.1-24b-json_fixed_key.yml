@@ -1,0 +1,14 @@
+name: Eval Execution Read - mistral-small-3.1-24b - json_fixed_key
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-eval:
+    uses: ./.github/workflows/eval-execution-read-format-reusable.yml
+    with:
+      short_model: mistral-small-3.1-24b
+      full_model: mistralai/mistral-small-3.1-24b-instruct
+      format: json_fixed_key
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

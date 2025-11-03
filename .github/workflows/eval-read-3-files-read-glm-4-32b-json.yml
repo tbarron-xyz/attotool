@@ -1,0 +1,16 @@
+name: Eval Read 3 Files Read - glm-4-32b - json
+
+on:
+  workflow_run:
+    workflows: ["Eval Execution Read - glm-4-32b - json"]
+    types:
+      - completed
+
+jobs:
+  evaluate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/eval-read-3-files-format-reusable.yml
+    with:
+      model: glm-4-32b
+      run_id: ${{ github.event.workflow_run.id }}
+      format: json

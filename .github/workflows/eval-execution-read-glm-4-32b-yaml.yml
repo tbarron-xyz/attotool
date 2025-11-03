@@ -1,0 +1,14 @@
+name: Eval Execution Read - grok-4-fast - yaml
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-eval:
+    uses: ./.github/workflows/eval-execution-read-format-reusable.yml
+    with:
+      short_model: grok-4-fast
+      full_model: x-ai/grok-4-fast
+      format: yaml
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
