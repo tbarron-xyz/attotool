@@ -1,8 +1,8 @@
-name: Eval Valid YAML - gpt-4o-mini
+name: Eval Valid YAML - gemma-3-27b-it
 
 on:
   workflow_run:
-    workflows: ["Eval Execution Fetch URL - gpt-4o-mini"]
+    workflows: ["Eval Execution Fetch URL - gemma-3-27b-it"]
     types:
       - completed
 
@@ -11,5 +11,5 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/eval-valid-yaml-reusable.yml
     with:
-      model: gpt-4o-mini
+      model: gemma-3-27b-it
       run_id: ${{ github.event.workflow_run.id }}

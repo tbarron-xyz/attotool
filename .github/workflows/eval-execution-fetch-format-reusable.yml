@@ -31,7 +31,7 @@ jobs:
       - name: Set URL
         run: echo "https://en.wikipedia.org/wiki/Main_Page" > ./url.txt
       - name: Run eval
-        run: ./target/release/attotool --model ${{ inputs.full_model }} --yolo --format ${{ inputs.format }} --input "read the url at ./url.txt , fetch that url, and write a yaml summary of its contents to ./summary.yaml" > summary.txt
+        run: ./target/release/attotool --model ${{ inputs.full_model }} --yolo --format ${{ inputs.format }} --max-tool-calls 15 --input "read the url at ./url.txt , fetch that url, and write a yaml summary of its contents to ./summary.yaml" > summary.txt
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       - name: Upload artifact

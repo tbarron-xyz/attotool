@@ -1,4 +1,4 @@
-name: Eval Execution Read - gpt-4o-mini - yaml
+name: Eval Execution Read - gemma-3-27b-it - json_fixed_key
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ jobs:
   run-eval:
     uses: ./.github/workflows/eval-execution-read-format-reusable.yml
     with:
-      short_model: gpt-4o-mini
-      full_model: openai/gpt-4o-mini
-      format: yaml
+      short_model: gemma-3-27b-it
+      full_model: google/gemma-3-27b-it
+      format: json_fixed_key
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

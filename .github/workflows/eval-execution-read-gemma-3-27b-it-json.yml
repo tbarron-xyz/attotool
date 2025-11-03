@@ -1,4 +1,4 @@
-name: Eval Execution Read - grok-code-fast-1 - json_fixed_key
+name: Eval Execution Read - gemma-3-27b-it - json
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ jobs:
   run-eval:
     uses: ./.github/workflows/eval-execution-read-format-reusable.yml
     with:
-      short_model: grok-code-fast-1
-      full_model: x-ai/grok-code-fast-1
-      format: json_fixed_key
+      short_model: gemma-3-27b-it
+      full_model: google/gemma-3-27b-it
+      format: json
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

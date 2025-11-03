@@ -1,4 +1,4 @@
-name: Eval Execution Read - grok-code-fast-1 - yaml
+name: Eval Execution Read - mistral-7b-instruct - json_fixed_key
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ jobs:
   run-eval:
     uses: ./.github/workflows/eval-execution-read-format-reusable.yml
     with:
-      short_model: grok-code-fast-1
-      full_model: x-ai/grok-code-fast-1
-      format: yaml
+      short_model: mistral-7b-instruct
+      full_model: mistralai/mistral-7b-instruct
+      format: json_fixed_key
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

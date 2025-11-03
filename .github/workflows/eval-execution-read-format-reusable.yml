@@ -29,7 +29,7 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/*.rs') }}
       - name: Run eval
-        run: ./target/release/attotool --model ${{ inputs.full_model }} --yolo --format ${{ inputs.format }} --input "Read at least 10 files in the repo and summarize your findings" > summary.txt
+        run: ./target/release/attotool --model ${{ inputs.full_model }} --yolo --format ${{ inputs.format }} --max-tool-calls 15 --input "Read at least 10 files in the repo and summarize your findings" > summary.txt
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       - name: Upload artifact

@@ -1,4 +1,4 @@
-name: Eval Execution Fetch URL - gpt-4o-mini - yaml
+name: Eval Execution Fetch URL - openai/gpt-oss-20b - yaml
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ jobs:
   run-eval:
     uses: ./.github/workflows/eval-execution-fetch-format-reusable.yml
     with:
-      short_model: gpt-4o-mini
-      full_model: openai/gpt-4o-mini
+      short_model: openai/gpt-oss-20b
+      full_model: openai/gpt-oss-20b
       format: yaml
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

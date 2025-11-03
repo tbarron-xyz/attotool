@@ -1,8 +1,8 @@
-name: Eval Finished Task Read - grok-code-fast-1 - json
+name: Eval Finished Task Read - gemma-3-27b-it - yaml
 
 on:
   workflow_run:
-    workflows: ["Eval Execution Read - grok-code-fast-1 - json"]
+    workflows: ["Eval Execution Read - gemma-3-27b-it - yaml"]
     types:
       - completed
 
@@ -11,6 +11,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/eval-finished-task-format-reusable.yml
     with:
-      model: grok-code-fast-1
+      model: gemma-3-27b-it
       run_id: ${{ github.event.workflow_run.id }}
-      format: json
+      format: yaml

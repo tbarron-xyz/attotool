@@ -1,8 +1,8 @@
-name: Eval Read 8 Files Read - grok-code-fast-1 - json_fixed_key
+name: Eval Read 8 Files Read - gemma-3-27b-it - yaml
 
 on:
   workflow_run:
-    workflows: ["Eval Execution Read - grok-code-fast-1 - json_fixed_key"]
+    workflows: ["Eval Execution Read - gemma-3-27b-it - yaml"]
     types:
       - completed
 
@@ -11,6 +11,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/eval-read-8-files-format-reusable.yml
     with:
-      model: grok-code-fast-1
+      model: gemma-3-27b-it
       run_id: ${{ github.event.workflow_run.id }}
-      format: json_fixed_key
+      format: yaml

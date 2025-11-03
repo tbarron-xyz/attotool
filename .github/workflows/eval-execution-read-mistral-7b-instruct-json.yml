@@ -1,4 +1,4 @@
-name: Eval Execution Read - gpt-4o-mini - json
+name: Eval Execution Read - mistral-7b-instruct - json
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ jobs:
   run-eval:
     uses: ./.github/workflows/eval-execution-read-format-reusable.yml
     with:
-      short_model: gpt-4o-mini
-      full_model: openai/gpt-4o-mini
+      short_model: mistral-7b-instruct
+      full_model: mistralai/mistral-7b-instruct
       format: json
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
