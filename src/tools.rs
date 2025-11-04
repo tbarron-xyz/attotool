@@ -380,7 +380,7 @@ async fn execute_describe_to_user(
 ) -> Result<String, Box<dyn std::error::Error>> {
     let description = args["description"].as_str().unwrap_or("");
     println!("{}", format!("Description: {}", description));
-    Ok(format!("Description: {}", description))
+    Ok("Description successfully presented to user".to_string())
 }
 
 pub fn get_tools(yolo: bool, plan_mode: bool) -> Vec<Tool> {
