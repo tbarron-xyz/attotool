@@ -1,3 +1,4 @@
+use async_openai::types::{ResponseFormat, ResponseFormatJsonSchema};
 use serde_json::{Map, Value};
 use serde_yaml::Mapping;
 
@@ -190,4 +191,42 @@ pub fn parse_tool_response(
             JsonFixedKeysParser.parse(input, verbose)
         }
     }
+}
+pub fn response_format(
+    tool_response_format: &ToolResponseFormat,
+    tool_names: &Vec<serde_json::Value>,
+) -> Option<ResponseFormat> {
+    return match tool_response_format {
+        ToolResponseFormat::JsonFixedKeys => {
+            let schema = serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "tool": {
+                        "type": "string",
+                        "enum": tool_names
+                    },
+                    "tool_args": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "anyOf": [
+                                {"type": "string"},
+                                {"type": "number"}
+                            ]
+                        }
+                    }
+                },
+                "required": ["tool", "tool_args"],
+                "additionalProperties": false
+            });
+            Some(ResponseFormat::JsonSchema {
+                json_schema: ResponseFormatJsonSchema {
+                    name: "tool_call".to_string(),
+                    schema: Some(schema),
+                    strict: Some(true),
+                    description: Some("A single tool call".to_string()),
+                },
+            })
+        }
+        _ => None,
+    };
 }

@@ -298,7 +298,7 @@ format: yaml
 
 Supported formats: `yaml`, `json`, `json_fixed_key`.
 
-Different response formats are provided because various language models excel with specific tool call structures. `yaml` is human-readable and works well with most models. `json` allows flexible key-value pairs for complex arguments. `json_fixed_key` enforces a strict schema for models that require precise JSON structures, potentially improving reliability for certain LLMs.
+Different response formats are provided because various language models excel with specific tool call structures. `yaml` is human-readable and works well with most models. `json` allows flexible key-value pairs for complex arguments. `json_fixed_key` uses OpenAI's `response_format` API parameter to enforce a strict schema for models that require precise JSON structures, potentially improving reliability for certain LLMs.
 
 **YAML:**
 ```yaml

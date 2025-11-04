@@ -9,7 +9,6 @@ mod yaml_utilities;
 #[derive(Parser)]
 #[command(name = "attotool")]
 struct Args {
-    // Known decent models: openai/gpt-oss-20b, qwen/qwen-2.5-7b-instruct, mistralai/mistral-7b-instruct, mistralai/mistral-small-3.1-24b-instruct
     #[arg(long)]
     model: Option<String>,
     #[arg(long, default_value_t = 2000)]

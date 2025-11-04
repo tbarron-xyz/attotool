@@ -341,7 +341,7 @@ async fn execute_ask_for_clarification(
     _yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let question = args["question"].as_str().unwrap_or("");
-    println!("{}", question);
+    println!("{}", format!("Clarifying question for user: {}", question));
     let mut answer = String::new();
     io::stdin().read_line(&mut answer).unwrap();
     Ok(answer.trim().to_string())

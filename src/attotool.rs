@@ -7,7 +7,6 @@ use async_openai::{
         ChatCompletionRequestSystemMessageContent,
         ChatCompletionRequestUserMessage,
         ChatCompletionRequestUserMessageContent, CreateChatCompletionRequest,
-        ResponseFormat, ResponseFormatJsonSchema,
     },
 };
 use serde_json::{Map, Value};
@@ -16,7 +15,9 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
-use crate::response_formats::{ToolResponseFormat, parse_tool_response};
+use crate::response_formats::{
+    ToolResponseFormat, parse_tool_response, response_format,
+};
 
 pub async fn choose_tool(
     history: Vec<ChatCompletionRequestMessage>,
@@ -67,39 +68,8 @@ pub async fn choose_tool(
     let mut messages = vec![system_message];
     messages.extend(history);
 
-    let response_format_api = match tool_response_format {
-        ToolResponseFormat::JsonFixedKeys => {
-            let schema = serde_json::json!({
-                "type": "object",
-                "properties": {
-                    "tool": {
-                        "type": "string",
-                        "enum": tool_names
-                    },
-                    "tool_args": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "anyOf": [
-                                {"type": "string"},
-                                {"type": "number"}
-                            ]
-                        }
-                    }
-                },
-                "required": ["tool", "tool_args"],
-                "additionalProperties": false
-            });
-            Some(ResponseFormat::JsonSchema {
-                json_schema: ResponseFormatJsonSchema {
-                    name: "tool_call".to_string(),
-                    schema: Some(schema),
-                    strict: Some(true),
-                    description: Some("A single tool call".to_string()),
-                },
-            })
-        }
-        _ => None,
-    };
+    let response_format_api =
+        response_format(tool_response_format, &tool_names);
 
     let request = CreateChatCompletionRequest {
         model: model.to_string(),
