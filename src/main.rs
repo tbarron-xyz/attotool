@@ -9,13 +9,17 @@ mod yaml_utilities;
 #[derive(Parser)]
 #[command(name = "attotool")]
 struct Args {
-    #[arg(long)]
+    #[arg(long, help = "LLM model to use")]
     model: Option<String>,
-    #[arg(long, default_value_t = 2000)]
+    #[arg(long, default_value_t = 2000, help = "Maximum tokens for response")]
     max_tokens: u32,
-    #[arg(long, default_value = "https://openrouter.ai/api/v1")]
+    #[arg(
+        long,
+        default_value = "https://openrouter.ai/api/v1",
+        help = "OpenAI-compatible API base URL"
+    )]
     base_url: String,
-    #[arg(long)]
+    #[arg(long, help = "Task description")]
     input: Option<String>,
     #[arg(index = 1, conflicts_with = "input")]
     positional_input: Option<String>,
@@ -25,15 +29,15 @@ struct Args {
         help = "Maximum number of tool calls (0 for infinite)"
     )]
     max_tool_calls: u32,
-    #[arg(long, default_value_t = 3)]
+    #[arg(long, default_value_t = 3, help = "Number of retries for API calls")]
     retries: u32,
-    #[arg(long)]
+    #[arg(long, help = "Enable very detailed output")]
     verbose: bool,
-    #[arg(long)]
+    #[arg(long, help = "Show tool execution details")]
     tool_call_details: bool,
-    #[arg(long)]
+    #[arg(long, help = "Disable automatic AGENTS.md loading")]
     disable_agents_md: bool,
-    #[arg(long)]
+    #[arg(long, help = "Skip approval prompts (YOLO mode)")]
     yolo: bool,
     #[arg(
         short = 'c',
@@ -41,10 +45,14 @@ struct Args {
         help = "Reads the existing history.yaml and continues the conversation with a new user message"
     )]
     r#continue: bool,
-    #[arg(long, short = 'p')]
+    #[arg(long, short = 'p', help = "Enable read-only planning mode")]
     plan: bool,
     #[arg(long, help = "Response format: yaml, json, json_fixed_key")]
     format: Option<String>,
+    #[arg(long, help = "Disable the execute_shell_command tool")]
+    no_shell: bool,
+    #[arg(long, help = "Disable the ask_for_clarification tool")]
+    no_clarify: bool,
 }
 
 #[tokio::main]
@@ -73,6 +81,8 @@ async fn main() {
         args.yolo,
         args.r#continue,
         args.plan,
+        args.no_shell,
+        args.no_clarify,
         &response_format,
     )
     .await

@@ -94,6 +94,7 @@ pub fn format_system_prompt_from_yaml(
     plan_mode: bool,
     available_tools_text: &str,
     yolo: bool,
+    no_clarify: bool,
     response_format: &ToolResponseFormat,
 ) -> String {
     let current_dir_part = yaml["current_dir"]
@@ -121,7 +122,7 @@ pub fn format_system_prompt_from_yaml(
     let ask_for_clarification_field =
         yaml["ask_for_clarification"].as_str().unwrap_or("");
     let ask_for_clarification_part =
-        if !yolo && !ask_for_clarification_field.is_empty() {
+        if !yolo && !no_clarify && !ask_for_clarification_field.is_empty() {
             format!(" {}", ask_for_clarification_field)
         } else {
             String::new()
@@ -171,6 +172,7 @@ pub fn format_system_prompt(
     plan_mode: bool,
     available_tools_text: &str,
     yolo: bool,
+    no_clarify: bool,
     response_format: &ToolResponseFormat,
 ) -> String {
     let base_yaml: serde_yaml::Value =
@@ -201,6 +203,7 @@ pub fn format_system_prompt(
         plan_mode,
         available_tools_text,
         yolo,
+        no_clarify,
         response_format,
     )
 }

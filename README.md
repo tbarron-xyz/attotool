@@ -274,9 +274,12 @@ attotool --continue "your follow-up task here"
 ### CLI Options
 
 - `--model`: LLM model to use (default: mistralai/mistral-small-3.1-24b-instruct)
+- `--input`: Task description (can also be provided as the first positional argument)
+- `--plan` / `-p`: Enable plan mode (read-only phase, modifications discouraged)
+- `--no-clarify`: Disable the ask_for_clarification tool
+- `--no-shell`: Disable the execute_shell_command tool
 - `--max-tokens`: Maximum tokens for response (default: 2000)
 - `--base-url`: API base URL (default: https://openrouter.ai/api/v1, use https://api.openai.com/v1 for OpenAI)
-- `--input`: Task description (can also be provided as the first positional argument)
 - `--max-tool-calls`: Maximum number of tool calls (default: 0 for infinite)
 - `--retries`: Number of retries for API calls (default: 3)
 - `--verbose`: Enable detailed output including raw API responses
@@ -285,7 +288,6 @@ attotool --continue "your follow-up task here"
 - `--yolo`: 🚩 Enable YOLO mode (skips approval prompts for destructive operations and removes ask_for_clarification tool)
 - `--continue` / `-c`: Reads the existing ~/.local/share/attotool/history.yaml and continues the conversation with a new user message
 - `--format`: Response format (yaml, json, json_fixed_key; default: yaml)
-- `--plan` / `-p`: Enable plan mode (read-only phase, modifications discouraged)
 
 ## Configuration
 

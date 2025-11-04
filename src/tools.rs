@@ -383,7 +383,12 @@ async fn execute_describe_to_user(
     Ok("Description successfully presented to user".to_string())
 }
 
-pub fn get_tools(yolo: bool, plan_mode: bool) -> Vec<Tool> {
+pub fn get_tools(
+    yolo: bool,
+    plan_mode: bool,
+    no_shell: bool,
+    no_clarify: bool,
+) -> Vec<Tool> {
     let finish_tool = if plan_mode {
         Tool::FinishPlanning
     } else {
@@ -398,12 +403,16 @@ pub fn get_tools(yolo: bool, plan_mode: bool) -> Vec<Tool> {
         // Tool::ListFiles,
         finish_tool,
         Tool::DescribeToUser,
+        Tool::AskForClarification
     ];
     if plan_mode {
         tools.retain(|t| !matches!(t, Tool::WriteFile | Tool::WriteLines));
     }
-    if !yolo {
-        tools.push(Tool::AskForClarification);
+    if no_shell {
+        tools.retain(|t| !matches!(t, Tool::ExecuteShellCommand));
+    }
+    if yolo || no_clarify {
+        tools.retain(|t| !matches!(t, Tool::AskForClarification));
     }
     tools
 }

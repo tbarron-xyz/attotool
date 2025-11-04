@@ -29,6 +29,8 @@ pub async fn choose_tool(
     yolo: bool,
     disable_agents_md: bool,
     plan_mode: bool,
+    no_shell: bool,
+    no_clarify: bool,
     tool_response_format: &ToolResponseFormat,
 ) -> Result<Map<String, Value>, Box<dyn std::error::Error>> {
     let api_key =
@@ -39,7 +41,7 @@ pub async fn choose_tool(
             .with_api_key(api_key),
     );
 
-    let tools = crate::tools::get_tools(yolo, plan_mode);
+    let tools = crate::tools::get_tools(yolo, plan_mode, no_shell, no_clarify);
     let tool_names: Vec<serde_json::Value> = tools
         .iter()
         .map(|t| serde_json::Value::String(t.name().to_string()))
@@ -54,6 +56,7 @@ pub async fn choose_tool(
         plan_mode,
         &available_tools_text,
         yolo,
+        no_clarify,
         tool_response_format,
     );
     let system_message = ChatCompletionRequestMessage::System(
@@ -125,8 +128,10 @@ pub async fn execute_tool_call(
     verbose: bool,
     yolo: bool,
     plan_mode: bool,
+    no_shell: bool,
+    no_clarify: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    let tools = crate::tools::get_tools(yolo, plan_mode);
+    let tools = crate::tools::get_tools(yolo, plan_mode, no_shell, no_clarify);
     let tool = tools
         .into_iter()
         .find(|t| t.name() == tool_name)
@@ -147,6 +152,8 @@ pub async fn loop_tools_until_finish(
     yolo: bool,
     continue_task: bool,
     plan_mode: bool,
+    no_shell: bool,
+    no_clarify: bool,
     tool_response_format: &ToolResponseFormat,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let home = env::var("HOME").expect("HOME not set");
@@ -199,6 +206,8 @@ pub async fn loop_tools_until_finish(
             yolo,
             disable_agents_md,
             plan_mode,
+            no_shell,
+            no_clarify,
             tool_response_format,
         )
         .await?;
@@ -281,6 +290,8 @@ pub async fn loop_tools_until_finish(
             verbose,
             yolo,
             plan_mode,
+            no_shell,
+            no_clarify,
         )
         .await
         {
