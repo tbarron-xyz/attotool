@@ -232,8 +232,10 @@ attotool is a minimalistic agent that uses YAML-formatted tool calls (configurab
 ## Available Tools
 - `execute_shell_command`: Run shell commands with arguments. 🟢 **Requires explicit user confirmation.**
 - `read_file`: Read file contents
+- `read_lines`: Reads specific lines from a file between start_line and end_line
 - `write_file`: Write content to file. 🟢 **Requires explicit user confirmation.**
-- `finish_task`: Mark task as completed
+- `write_lines`: Writes content to specific lines in a file between start_line and end_line. 🟢 **Requires explicit user confirmation.**
+- `finish_plan / finish_task`: Mark task as completed
 - `ask_for_clarification`: Request user input
 - `describe_to_user`: Provide descriptions or responses
 
