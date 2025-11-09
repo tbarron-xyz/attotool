@@ -169,7 +169,7 @@ pub async fn loop_tools_until_finish(
         history.push(ChatCompletionRequestMessage::User(
             ChatCompletionRequestUserMessage {
                 content: ChatCompletionRequestUserMessageContent::Text(message),
-                name: None,
+                name: Some("primary_user".to_string()),
             },
         ));
     } else {
@@ -330,7 +330,7 @@ pub async fn loop_tools_until_finish(
                 content: ChatCompletionRequestUserMessageContent::Text(
                     prefixed_result,
                 ),
-                name: None,
+                name: Some("tool_call_result".to_string()),
             },
         ));
 
