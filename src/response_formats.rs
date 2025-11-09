@@ -230,3 +230,53 @@ pub fn response_format(
         _ => None,
     };
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_tool_response_yaml_simple() {
+        let input = "read_file:\n  path: \"test.txt\"";
+        let result =
+            parse_tool_response(&ToolResponseFormat::Yaml, input, false);
+        assert!(result.is_ok());
+        let map = result.unwrap();
+        assert_eq!(map.len(), 1);
+        assert!(map.contains_key("read_file"));
+        if let serde_json::Value::Object(args) = &map["read_file"] {
+            assert_eq!(args["path"], "test.txt");
+        } else {
+            panic!("Expected object");
+        }
+    }
+
+    #[test]
+    fn test_parse_tool_response_yaml_with_number() {
+        let input =
+            "read_lines:\n  path: \"file.rs\"\n  start_line: 1\n  end_line: 10";
+        let result =
+            parse_tool_response(&ToolResponseFormat::Yaml, input, false);
+        assert!(result.is_ok());
+        let map = result.unwrap();
+        assert!(map.contains_key("read_lines"));
+        if let serde_json::Value::Object(args) = &map["read_lines"] {
+            assert_eq!(args["path"], "file.rs");
+            assert_eq!(args["start_line"], 1);
+            assert_eq!(args["end_line"], 10);
+        } else {
+            panic!("Expected object");
+        }
+    }
+
+    #[test]
+    fn test_parse_tool_response_yaml_multi_tool() {
+        let input = "read_file:\n  path: \"test.txt\"\nwrite_file:\n  path: \"out.txt\"\n  content: \"hello\"";
+        let result =
+            parse_tool_response(&ToolResponseFormat::Yaml, input, false);
+        assert!(result.is_ok());
+        let map = result.unwrap();
+        assert_eq!(map.len(), 1); // Should only keep first tool
+        assert!(map.contains_key("read_file"));
+    }
+}
