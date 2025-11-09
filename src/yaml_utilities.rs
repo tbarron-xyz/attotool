@@ -252,3 +252,77 @@ pub fn parse_tool_response_yaml(
     };
     parse_first_tool_from_tool_response_yaml(yaml_candidate, verbose)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_yaml::{Mapping, Value as YamlValue};
+
+    #[test]
+    fn test_merge_yaml_simple_override() {
+        let base_yaml =
+            serde_yaml::from_str("model: default\nformat: yaml").unwrap();
+        let user_yaml = serde_yaml::from_str("model: custom").unwrap();
+        let merged = merge_yaml(&base_yaml, &user_yaml);
+        if let YamlValue::Mapping(map) = merged {
+            assert_eq!(
+                map[&YamlValue::String("model".to_string())],
+                YamlValue::String("custom".to_string())
+            );
+            assert_eq!(
+                map[&YamlValue::String("format".to_string())],
+                YamlValue::String("yaml".to_string())
+            );
+        } else {
+            panic!("Expected mapping");
+        }
+    }
+
+    #[test]
+    fn test_merge_yaml_add_new_field() {
+        let base_yaml = serde_yaml::from_str("model: default").unwrap();
+        let user_yaml = serde_yaml::from_str("format: json").unwrap();
+        let merged = merge_yaml(&base_yaml, &user_yaml);
+        if let YamlValue::Mapping(map) = merged {
+            assert_eq!(
+                map[&YamlValue::String("model".to_string())],
+                YamlValue::String("default".to_string())
+            );
+            assert_eq!(
+                map[&YamlValue::String("format".to_string())],
+                YamlValue::String("json".to_string())
+            );
+        } else {
+            panic!("Expected mapping");
+        }
+    }
+
+    #[test]
+    fn test_merge_yaml_nested_override() {
+        let base_yaml =
+            serde_yaml::from_str("config:\n  timeout: 30\n  retries: 3")
+                .unwrap();
+        let user_yaml = serde_yaml::from_str("config:\n  timeout: 60").unwrap();
+        let merged = merge_yaml(&base_yaml, &user_yaml);
+        if let YamlValue::Mapping(map) = merged {
+            if let YamlValue::Mapping(config) =
+                &map[&YamlValue::String("config".to_string())]
+            {
+                assert_eq!(
+                    config[&YamlValue::String("timeout".to_string())],
+                    YamlValue::Number(60.into())
+                );
+                // Note: merge_yaml does shallow merge, so retries is replaced
+                assert!(
+                    !config.contains_key(&YamlValue::String(
+                        "retries".to_string()
+                    ))
+                );
+            } else {
+                panic!("Expected nested mapping");
+            }
+        } else {
+            panic!("Expected mapping");
+        }
+    }
+}

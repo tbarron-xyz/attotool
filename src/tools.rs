@@ -403,7 +403,7 @@ pub fn get_tools(
         // Tool::ListFiles,
         finish_tool,
         Tool::DescribeToUser,
-        Tool::AskForClarification
+        Tool::AskForClarification,
     ];
     if plan_mode {
         tools.retain(|t| !matches!(t, Tool::WriteFile | Tool::WriteLines));
