@@ -4,6 +4,7 @@ A tiny YAML-tool-calling agent built from scratch in Rust.
 
 [![build docker image](https://github.com/tbarron-xyz/attotool/actions/workflows/build-docker.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/build-docker.yml)
 [![build rust](https://github.com/tbarron-xyz/attotool/actions/workflows/ci-build.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/ci-build.yml)
+[![test rust](https://github.com/tbarron-xyz/attotool/actions/workflows/ci-test.yml/badge.svg)](https://github.com/tbarron-xyz/attotool/actions/workflows/ci-test.yml)
 
 attotool is a minimalistic agent that uses YAML-formatted tool calls (configurable to JSON) to interact with the local system. It lets large language models choose and execute tools in a loop until task completion, in a compact, structured, human-readable format.
 
