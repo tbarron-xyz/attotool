@@ -326,17 +326,23 @@ read_file:
 The following models have been tested and have worked at least once with attotool:
 
 - Model: $/1M tokens input / output (prices fetched 11/2025)
+
+- **mistralai/mistral-small-3.1-24b-instruct**: $0.05 / $0.1
+- **x-ai/grok-4-fast**: $0.2 / $0.5
+- **x-ai/grok-code-fast-1**: $0.2 / $1.5
+<details>
+<summary>More</summary>
+
 - mistralai/mistral-nemo: $0.02 / $0.04
 - mistralai/mistral-7b-instruct: $0.028 / $0.054
 - qwen/qwen-2.5-7b-instruct: $0.04 / $0.1
-- **mistralai/mistral-small-3.1-24b-instruct**: $0.05 / $0.1
 - z-ai/glm-4-32b: $0.1 / $0.1
 - mistralai/devstral-small-2505: $0.06 / $0.12
 - openai/gpt-oss-120b:exacto: $0.03 / $0.14
 - google/gemma-3-27b-it: $0.09 / $0.16
 - qwen/qwen-2.5-72b-instruct: $0.07 / $0.26
-- x-ai/grok-4-fast: $0.2 / $0.5
 - x-ai/grok-3-mini: $0.3 / $0.5
 - openai/gpt-oss-120b:exacto: $0.15 / $0.6
 - deepseek/deepseek-chat-v3-0324: $0.24 / $0.84
-- x-ai/grok-code-fast-1: $0.2 / $1.5
+
+</details>
