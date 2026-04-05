@@ -53,6 +53,8 @@ struct Args {
     no_shell: bool,
     #[arg(long, help = "Disable the ask_for_clarification tool")]
     no_clarify: bool,
+    #[arg(long, help = "Disable the final summary at task completion")]
+    no_summary: bool,
 }
 
 #[tokio::main]
@@ -84,6 +86,7 @@ async fn main() {
         args.no_shell,
         args.no_clarify,
         &response_format,
+        args.no_summary,
     )
     .await
     .unwrap();

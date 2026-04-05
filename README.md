@@ -281,6 +281,7 @@ attotool --continue "your follow-up task here"
 - `--plan` / `-p`: Enable plan mode (read-only phase, modifications discouraged)
 - `--no-clarify`: Disable the ask_for_clarification tool
 - `--no-shell`: Disable the execute_shell_command tool
+- `--no-summary`: Disable the final summary at task completion
 - `--max-tokens`: Maximum tokens for response (default: 2000)
 - `--base-url`: API base URL (default: https://openrouter.ai/api/v1, use https://api.openai.com/v1 for OpenAI)
 - `--max-tool-calls`: Maximum number of tool calls (default: 0 for infinite)

@@ -321,7 +321,9 @@ async fn execute_finish_task(
     _yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let message = args["message"].as_str().unwrap_or("");
-    println!("{}", format!("Task completed: {}", message));
+    if false {
+        println!("{}", format!("Task completed: {}", message));
+    }
     Ok(format!("Task completed: {}", message))
 }
 
@@ -331,7 +333,9 @@ async fn execute_finish_planning(
     _yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let message = args["message"].as_str().unwrap_or("");
-    println!("{}", format!("Planning completed: {}", message));
+    if false {
+        println!("{}", format!("Planning completed: {}", message));
+    }
     Ok(format!("Planning completed: {}", message))
 }
 
@@ -341,7 +345,7 @@ async fn execute_ask_for_clarification(
     _yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let question = args["question"].as_str().unwrap_or("");
-    println!("{}", format!("Clarifying question for user: {}", question));
+    println!("{}", question);
     let mut answer = String::new();
     io::stdin().read_line(&mut answer).unwrap();
     Ok(answer.trim().to_string())
@@ -379,8 +383,10 @@ async fn execute_describe_to_user(
     _yolo: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let description = args["description"].as_str().unwrap_or("");
-    println!("{}", format!("Description: {}", description));
-    Ok("Description successfully presented to user".to_string())
+    if false {
+        println!("{}", format!("Description: {}", description));
+    }
+    Ok(description.to_string())
 }
 
 pub fn get_tools(

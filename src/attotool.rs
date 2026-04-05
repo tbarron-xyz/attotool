@@ -19,6 +19,27 @@ use crate::response_formats::{
     ToolResponseFormat, parse_tool_response, response_format,
 };
 
+fn format_tool_output(content: &str, max_lines: Option<usize>) -> String {
+    let lines: Vec<&str> = content.lines().collect();
+    let total = lines.len();
+    let display = match max_lines {
+        Some(n) if total > n => &lines[..n],
+        _ => &lines,
+    };
+    let formatted = display
+        .iter()
+        .enumerate()
+        .map(|(i, line)| format!("-{}- {}", i + 1, line))
+        .collect::<Vec<_>>()
+        .join("\n");
+    if let Some(n) = max_lines {
+        if total > n {
+            return format!("{}\n... and {} more lines", formatted, total - n);
+        }
+    }
+    formatted
+}
+
 pub async fn choose_tool(
     history: Vec<ChatCompletionRequestMessage>,
     model: &str,
@@ -155,6 +176,7 @@ pub async fn loop_tools_until_finish(
     no_shell: bool,
     no_clarify: bool,
     tool_response_format: &ToolResponseFormat,
+    no_summary: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let home = env::var("HOME").expect("HOME not set");
     let history_dir = Path::new(&home).join(".local/share/attotool");
@@ -194,7 +216,7 @@ pub async fn loop_tools_until_finish(
             },
         ));
     }
-    let mut tool_calls: Vec<(String, String)> = Vec::new();
+    let mut tool_calls: Vec<(String, String, String)> = Vec::new();
     loop {
         let mapping = choose_tool(
             history.clone(),
@@ -239,7 +261,7 @@ pub async fn loop_tools_until_finish(
         }
         .to_string();
 
-        tool_calls.push((tool.clone(), primary_value.clone()));
+        tool_calls.push((tool.clone(), primary_value.clone(), String::new()));
         if verbose {
             println!(
                 "Tool: {}, Args: {}",
@@ -303,7 +325,9 @@ pub async fn loop_tools_until_finish(
                     println!("Tool call failed: {}", failure_message);
                     println!("Error: {}", e);
                 }
+                println!("------");
                 println!("--- [{} {}]", tool, primary_value);
+                println!("------");
                 history.push(ChatCompletionRequestMessage::User(
                     ChatCompletionRequestUserMessage {
                         content: ChatCompletionRequestUserMessageContent::Text(
@@ -324,7 +348,12 @@ pub async fn loop_tools_until_finish(
                 prefixed_result.chars().take(500).collect::<String>()
             );
         }
+        println!("------");
         println!("--- [{} {}]", tool, primary_value);
+        println!("------");
+        println!("{}", format_tool_output(&result, None));
+        println!("------");
+        tool_calls.push((tool.clone(), primary_value.clone(), result.clone()));
         history.push(ChatCompletionRequestMessage::User(
             ChatCompletionRequestUserMessage {
                 content: ChatCompletionRequestUserMessageContent::Text(
@@ -342,9 +371,15 @@ pub async fn loop_tools_until_finish(
             break;
         }
     }
-    println!("--- Task tool usage summary");
-    for (tool, arg) in &tool_calls {
-        println!("[{} {}]", tool, arg);
+    if !no_summary {
+        println!("------");
+        println!("--- Task tool usage summary");
+        println!("------");
+        for (tool, arg, result) in &tool_calls {
+            println!("--- [{} {}]", tool, arg);
+            println!("{}", format_tool_output(result, Some(10)));
+        }
+        println!("------");
     }
     let yaml_content = serde_yaml::to_string(&history).unwrap();
     std::fs::write(&history_path, yaml_content).unwrap();
